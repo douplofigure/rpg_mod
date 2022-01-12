@@ -1,0 +1,19 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "douplo.crafting.mixins",
+  "compatibilityLevel": "JAVA_16",
+  "mixins": [
+    "CraftingScreenHandlerMixin",
+    "StatTypeMixin",
+    "SmithingScreenHandlerMixin",
+    "CrossBowItemMixin"
+  ],
+  "client": [
+  ],
+  "server": [
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
