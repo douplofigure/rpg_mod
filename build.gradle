@@ -6,10 +6,14 @@ plugins {
 sourceCompatibility = JavaVersion.VERSION_17
 targetCompatibility = JavaVersion.VERSION_17
 
+def getDate() {
+	return new Date().format('yyyy-MM-dd_HH-mm-ss')
+}
+
 archives_base_name = "rpg_mod"
 
 archivesBaseName = project.archives_base_name
-version = project.mod_version
+version = "${project.mod_version}_${getDate()}"
 group = project.maven_group
 
 repositories {
