@@ -1,4 +1,4 @@
-package douplo.crafting.mixins;
+package douplo.mixins;
 
 import douplo.crafting.bonus.BonusRecipe;
 import net.minecraft.entity.player.PlayerInventory;

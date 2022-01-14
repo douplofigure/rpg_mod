@@ -1,4 +1,4 @@
-package douplo.crafting.mixins;
+package douplo.mixins;
 
 import douplo.event.PlayerRespawnCallback;
 import net.minecraft.server.PlayerManager;

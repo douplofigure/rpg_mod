@@ -1,4 +1,4 @@
-package douplo.crafting.mixins;
+package douplo.mixins;
 
 import douplo.RpgMod;
 import net.minecraft.block.Block;

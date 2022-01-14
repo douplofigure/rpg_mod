@@ -4,6 +4,7 @@ import com.mojang.brigadier.CommandDispatcher;
 import douplo.command.Commands;
 import douplo.crafting.*;
 import douplo.event.PlayerRespawnCallback;
+import douplo.item.ServerOnlyItem;
 import douplo.loot.condition.LootConditions;
 import douplo.loot.number.NumberProviderTypes;
 import douplo.playerclass.PlayerClass;
@@ -23,6 +24,8 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.cauldron.CauldronBehavior;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.resource.ResourceManager;
@@ -67,6 +70,8 @@ public class RpgMod implements ModInitializer {
             return ActionResult.CONSUME;
         }
     };
+
+    public static final Item TEST_ITEM = new ServerOnlyItem(new Item.Settings().group(ItemGroup.TOOLS).maxCount(1).maxDamage(100));
 
     @Override
     public void onInitialize() {
@@ -185,6 +190,8 @@ public class RpgMod implements ModInitializer {
 
         NumberProviderTypes.register();
         LootConditions.register();
+
+        Registry.register(Registry.ITEM, new Identifier(RpgMod.MODID, "test_item"), TEST_ITEM);
 
         CauldronBehavior.WATER_CAULDRON_BEHAVIOR.put(Items.STICK, CRAFT_CAULDRON_BEHAIVIOR);
         CauldronBehavior.EMPTY_CAULDRON_BEHAVIOR.put(Items.STICK, CRAFT_CAULDRON_BEHAIVIOR);

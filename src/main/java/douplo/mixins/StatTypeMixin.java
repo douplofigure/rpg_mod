@@ -1,4 +1,4 @@
-package douplo.crafting.mixins;
+package douplo.mixins;
 
 import net.minecraft.stat.Stat;
 import net.minecraft.stat.StatType;

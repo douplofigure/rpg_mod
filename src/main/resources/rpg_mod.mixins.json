@@ -1,7 +1,7 @@
 {
   "required": true,
   "minVersion": "0.8",
-  "package": "douplo.crafting.mixins",
+  "package": "douplo.mixins",
   "compatibilityLevel": "JAVA_16",
   "mixins": [
     "CraftingScreenHandlerMixin",
@@ -9,7 +9,8 @@
     "SmithingScreenHandlerMixin",
     "CrossBowItemMixin",
     "MiningToolItemMixin",
-    "PlayerManagerMixin"
+    "PlayerManagerMixin",
+    "PacketByteBufMixin"
   ],
   "client": [
   ],
