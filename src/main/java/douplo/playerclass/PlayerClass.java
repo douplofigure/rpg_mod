@@ -2,10 +2,13 @@ package douplo.playerclass;
 
 import douplo.RpgMod;
 import net.minecraft.entity.attribute.EntityAttribute;
+import net.minecraft.entity.attribute.EntityAttributeInstance;
+import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
+import net.minecraft.util.registry.RegistryKey;
 
 import java.util.*;
 
@@ -76,10 +79,20 @@ public class PlayerClass {
 
     public void onPlayerSet(PlayerEntity player) {
 
-        Registry.ATTRIBUTE.stream().map((attr) -> {
-            player.getAttributeInstance(attr).setBaseValue(attr.getDefaultValue());
-            return null;
-        });
+        try {
+            for (Map.Entry<RegistryKey<EntityAttribute>, EntityAttribute> entry : Registry.ATTRIBUTE.getEntries()) {
+                EntityAttributeInstance instance = player.getAttributeInstance(entry.getValue());
+                if (instance == null)
+                    continue;
+                double value = entry.getValue().getDefaultValue();
+                if (entry.getValue() == EntityAttributes.GENERIC_MOVEMENT_SPEED)
+                    value = 0.1;
+                instance.setBaseValue(value);
+            }
+        } catch (Exception e) {
+            RpgMod.LOGGER.error(e);
+        }
+
 
         for (Map.Entry<EntityAttribute, Double> e : attributeValues.entrySet()) {
             player.getAttributeInstance(e.getKey()).setBaseValue(e.getValue());

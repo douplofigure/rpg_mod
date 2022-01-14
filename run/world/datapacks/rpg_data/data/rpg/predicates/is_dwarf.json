@@ -1,0 +1,4 @@
+{
+  "condition": "rpg_mod:player_class",
+  "class": "rpg_mod:dwarf"
+}

@@ -7,7 +7,9 @@
     "CraftingScreenHandlerMixin",
     "StatTypeMixin",
     "SmithingScreenHandlerMixin",
-    "CrossBowItemMixin"
+    "CrossBowItemMixin",
+    "MiningToolItemMixin",
+    "PlayerManagerMixin"
   ],
   "client": [
   ],

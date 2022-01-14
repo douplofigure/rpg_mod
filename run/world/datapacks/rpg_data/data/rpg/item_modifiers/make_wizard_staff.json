@@ -1,0 +1,14 @@
+[
+  {
+    "function": "minecraft:set_nbt",
+    "tag": "{CustomModelData:1}"
+  },
+  {
+    "function": "minecraft:set_name",
+    "name": {
+      "translate": "item.rpg.wizard_staff",
+      "color": "light_purple",
+      "italic": false
+    }
+  }
+]

@@ -1,0 +1,26 @@
+{
+  "display": {
+    "text": "Dwarf",
+    "color": "red"
+  },
+  "skill_multipliers": [
+    {
+      "skill": "rpg:weapon_crafting",
+      "value": 1.6
+    },
+    {
+      "skill": "rpg:mining",
+      "value": 2.0
+    }
+  ],
+  "attributes": [
+    {
+      "attribute": "minecraft:generic.movement_speed",
+      "value": 0.09
+    },
+    {
+      "attribute": "minecraft:generic.max_health",
+      "value": 22.0
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+    "type": "rpg_mod:cauldron_cooking",
+    "ingredients": [
+	{
+	    "item": "minecraft:bowl"
+	},
+	{
+	    "item": "minecraft:beetroot"
+	},
+	{
+	    "item": "minecraft:beetroot"
+	},
+	{
+	    "item": "minecraft:beetroot"
+	},
+	{
+	    "item": "minecraft:beetroot"
+	},
+	{
+	    "item": "minecraft:beetroot"
+	},
+	{
+	    "item": "minecraft:beetroot"
+	}
+    ],
+    "result": {
+	"item": "minecraft:beetroot_soup"
+    },
+    "cauldron_type": "minecraft:water_cauldron",
+    "fire_type": "minecraft:campfire"
+}

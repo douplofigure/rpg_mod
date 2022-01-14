@@ -10,9 +10,11 @@ import net.minecraft.util.registry.Registry;
 public class LootConditions {
 
     public static final LootConditionType PLAYER_CLASS = new LootConditionType(PlayerClassCondition.SERIALIZER);
+    public static final LootConditionType SKILL_LEVEL = new LootConditionType(SkillLevelCondition.SERIALIZER);
 
     public static void register() {
         Registry.register(Registry.LOOT_CONDITION_TYPE, new Identifier(RpgMod.MODID, "player_class"), PLAYER_CLASS);
+        Registry.register(Registry.LOOT_CONDITION_TYPE, new Identifier(RpgMod.MODID, "skill_level"), SKILL_LEVEL);
     }
 
 }

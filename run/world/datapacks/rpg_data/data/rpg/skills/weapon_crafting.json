@@ -1,0 +1,26 @@
+{
+    "type": "rpg_mod:combined",
+    "multiplier": 0.07,
+    "display": {
+	"text": "Weapon, Tool and Armor Crafting"
+    },
+    "factors": [
+	0.8,
+	0.7,
+	1.2
+    ],
+    "children": [
+	{
+	    "type": "rpg_mod:crafting",
+	    "tag": "rpg:tools"
+	},
+	{
+	    "type": "rpg_mod:crafting",
+	    "tag": "rpg:swords"
+	},
+	{
+	    "type": "rpg_mod:crafting",
+	    "tag": "rpg:helmets"
+	}
+    ]
+}

@@ -3,6 +3,7 @@ package douplo;
 import com.mojang.brigadier.CommandDispatcher;
 import douplo.command.Commands;
 import douplo.crafting.*;
+import douplo.event.PlayerRespawnCallback;
 import douplo.loot.condition.LootConditions;
 import douplo.loot.number.NumberProviderTypes;
 import douplo.playerclass.PlayerClass;
@@ -11,6 +12,7 @@ import douplo.playerclass.PlayerClassMap;
 import douplo.skill.Skill;
 import douplo.skill.SkillLoader;
 import douplo.skill.SkillTypes;
+import douplo.skill.bonus.SkillBonus;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
@@ -19,6 +21,7 @@ import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.cauldron.CauldronBehavior;
+import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -29,6 +32,7 @@ import net.minecraft.screen.ScreenHandlerContext;
 import net.minecraft.screen.SimpleNamedScreenHandlerFactory;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
@@ -110,8 +114,21 @@ public class RpgMod implements ModInitializer {
                     }
                 }
 
-                for (Identifier id : PlayerClass.getLoadedClassIds()) {
-                    LOGGER.info(id);
+                SkillBonus.clearCache();
+
+                for (Identifier id : manager.findResources("skill_bonuses", path -> path.endsWith(".json"))) {
+                    try (InputStream stream = manager.getResource(id).getInputStream()) {
+                        LOGGER.info("Loading data for " + id);
+                        int startIndex = id.getPath().indexOf("/");
+                        int endIndex = id.getPath().lastIndexOf(".");
+                        String simplePath = id.getPath().substring(startIndex+1, endIndex);
+                        Identifier name = new Identifier(id.getNamespace(), simplePath);
+                        LOGGER.info("name: " + name);
+                        SkillBonus.loadFromFile(name, stream);
+                    } catch (Exception e) {
+                        LOGGER.error(e);
+                        e.printStackTrace();
+                    }
                 }
 
             }
@@ -151,6 +168,16 @@ public class RpgMod implements ModInitializer {
 
                 PLAYER_CLASSES.save(server);
 
+            }
+        });
+
+        PlayerRespawnCallback.EVENT.register(new PlayerRespawnCallback() {
+            @Override
+            public ActionResult onRespawn(ServerPlayerEntity player) {
+                PlayerClass clazz = PLAYER_CLASSES.getPlayerClassFromUUID(player.getUuid());
+                LOGGER.info("Player respawn event for " + player.getName().getString());
+                clazz.onPlayerSet(player);
+                return ActionResult.PASS;
             }
         });
 

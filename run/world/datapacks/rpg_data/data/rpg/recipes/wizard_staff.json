@@ -1,0 +1,36 @@
+{
+  "type": "rpg_mod:crafting_shaped_bonus",
+  "pattern": [
+    "X",
+    "#",
+    "#"
+  ],
+  "key": {
+    "#": {
+      "item": "minecraft:stick"
+    },
+    "X": {
+      "item": "minecraft:amethyst_shard",
+      "nbt": "{CustomModelData:1}"
+    }
+  },
+  "result": {
+    "item": "minecraft:crossbow",
+    "nbt": "{CustomModelData:1}",
+    "name": {
+      "translate": "item.rpg.wizard_staff",
+      "color": "light_purple",
+      "italic": false
+    }
+  },
+  "bonuses": [
+    {
+      "type": "rpg_mod:item_modifier",
+      "modifier": "rpg:make_wizard_staff"
+    },
+    {
+      "type": "rpg_mod:item_modifier",
+      "modifier": "rpg:tool_crafting"
+    }
+  ]
+}

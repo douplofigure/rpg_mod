@@ -1,0 +1,14 @@
+[
+  {
+    "function": "minecraft:set_nbt",
+    "tag": "{CustomModelData:1,Enchantments:[]}"
+  },
+  {
+    "function": "minecraft:set_name",
+    "name": {
+      "translate": "item.rpg.fire_spell",
+      "color": "gold",
+      "italic": false
+    }
+  }
+]

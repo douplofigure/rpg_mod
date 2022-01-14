@@ -1,0 +1,38 @@
+{
+    "function": "minecraft:set_attributes",
+    "modifiers": [
+	{
+	    "name": "Sword Crafting",
+	    "attribute": "generic.attack_damage",
+	    "operation": "addition",
+	    "amount": {
+		"type": "minecraft:uniform",
+		"min": 6,
+		"max": {
+		    "type": "rpg_mod:operation",
+		    "operation": "add",
+		    "params": [
+			{
+			    "type": "rpg_mod:skill",
+			    "skill": "rpg:weapon_crafting"
+			},
+			{
+			    "type": "minecraft:constant",
+			    "value": 6.0
+			}
+		    ]
+		}
+	    },
+	    "slot": "mainhand",
+	    "id": "CB3F55D3-645C-4F38-A497-9C13A33DB5CF"
+	},
+	{
+	    "name": "Sword Crafting",
+	    "attribute": "generic.attack_speed",
+	    "operation": "addition",
+	    "amount": -2.4,
+	    "slot": "mainhand",
+	    "id": "FA233E1C-4180-4865-B01B-BCCE9785ACA"
+	}
+    ]
+}

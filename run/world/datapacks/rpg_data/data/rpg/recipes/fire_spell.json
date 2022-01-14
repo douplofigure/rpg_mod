@@ -1,0 +1,25 @@
+{
+  "type": "rpg_mod:cauldron_cooking",
+  "cauldron_type": "minecraft:water_cauldron",
+  "fire_type": "minecraft:campfire",
+  "ingredients": [
+    {
+      "tag": "minecraft:coals"
+    }
+  ],
+  "result": {
+    "item": "minecraft:fire_charge",
+    "count": 4,
+    "name": {
+      "translate": "item.rpg.fire_spell",
+      "color": "gold",
+      "italic": "false"
+    }
+  },
+  "bonuses": [
+    {
+      "type": "rpg_mod:item_modifier",
+      "modifier": "rpg:make_fire_spell"
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+    "function": "minecraft:set_lore",
+    "lore": [
+	{
+	    "text": "Crafted by:",
+	    "color": "green",
+	    "italic": false
+	},
+	{
+	    "selector": "@s",
+	    "color": "green",
+	    "italic": false
+	}
+    ],
+    "entity": "this",
+    "replace": true
+}

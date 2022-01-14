@@ -1,0 +1,26 @@
+{
+    "type": "rpg_mod:smithing_bonus",
+    "base": {
+	"item": "minecraft:diamond_sword"
+    },
+    "addition": {
+	"item": "minecraft:netherite_ingot"
+    },
+    "result": {
+	"item": "minecraft:netherite_sword"
+    },
+    "bonuses": [
+	{
+	    "type": "rpg_mod:item_modifier",
+	    "modifier": "rpg:tool_crafting"
+	},
+	{
+	    "type": "rpg_mod:item_modifier",
+	    "modifier": "rpg:remove_attribute_modifiers"
+	},
+	{
+	    "type": "rpg_mod:item_modifier",
+	    "modifier": "rpg:netherite_sword_crafting"
+	}
+    ]
+}

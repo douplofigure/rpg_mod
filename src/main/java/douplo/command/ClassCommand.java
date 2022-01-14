@@ -131,7 +131,7 @@ public class ClassCommand {
     }
 
     private static int getClassPlayer(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        EntitySelector selector = (EntitySelector) context.getArgument("player", EntitySelector.class);
+        EntitySelector selector = context.getArgument("player", EntitySelector.class);
         PlayerEntity player = selector.getPlayer(context.getSource());
         PlayerClass clazz = RpgMod.PLAYER_CLASSES.getPlayerClassFromUUID(player.getUuid());
         if (clazz != null)

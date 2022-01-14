@@ -1,0 +1,22 @@
+{
+  "display": {
+    "text": "Elf",
+    "color": "green"
+  },
+  "skill_multipliers": [
+    {
+      "skill": "rpg:weapon_crafting",
+      "value": 0.8
+    },
+    {
+      "skill": "rpg:archery",
+      "value": 1.75
+    }
+  ],
+  "attributes": [
+    {
+      "attribute": "minecraft:generic.movement_speed",
+      "value": 0.12
+    }
+  ]
+}

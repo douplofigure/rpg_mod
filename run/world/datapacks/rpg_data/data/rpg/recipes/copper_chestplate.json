@@ -1,0 +1,27 @@
+{
+  "type": "rpg_mod:crafting_shaped_bonus",
+  "pattern": [
+    "X X",
+    "XXX",
+    "XXX"
+  ],
+  "key": {
+    "X": {
+      "item": "minecraft:copper_ingot"
+    }
+  },
+  "result": {
+    "item": "minecraft:chainmail_chestplate",
+    "name": {
+      "translate": "item.rpg.copper_chestplate",
+      "italic": false
+    },
+    "nbt": "{CustomModelData:1}"
+  },
+  "bonuses": [
+    {
+      "type": "rpg_mod:item_modifier",
+      "modifier": "rpg:tool_crafting"
+    }
+  ]
+}

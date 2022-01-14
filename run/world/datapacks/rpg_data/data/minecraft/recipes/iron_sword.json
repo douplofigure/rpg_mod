@@ -1,0 +1,30 @@
+{
+    "type": "rpg_mod:crafting_shaped_bonus",
+    "pattern": [
+	"X",
+	"X",
+	"#"
+    ],
+    "key": {
+	"#": {
+	    "item": "minecraft:stick"
+	},
+	"X": {
+	    "item": "minecraft:iron_ingot",
+	    "nbt": "{CustomModelData:1}"
+	}
+    },
+    "result": {
+	"item": "minecraft:iron_sword"
+    },
+    "bonuses": [
+	{
+	    "type": "rpg_mod:item_modifier",
+	    "modifier": "rpg:iron_sword_crafting"
+	},
+	{
+	    "type": "rpg_mod:item_modifier",
+	    "modifier": "rpg:tool_crafting"
+	}
+    ]
+}

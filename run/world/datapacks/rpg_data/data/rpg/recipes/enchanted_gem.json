@@ -1,0 +1,31 @@
+{
+  "type": "rpg_mod:cauldron_cooking",
+  "cauldron_type": "minecraft:lava_cauldron",
+  "fire_type": "minecraft:soul_campfire",
+  "ingredients": [
+    {
+      "item": "minecraft:diamond"
+    },
+    {
+      "item": "minecraft:amethyst_shard"
+    },
+    {
+      "item": "minecraft:amethyst_shard"
+    },
+    {
+      "item": "minecraft:amethyst_shard"
+    },
+    {
+      "item": "minecraft:amethyst_shard"
+    }
+  ],
+  "result": {
+    "item": "minecraft:amethyst_shard"
+  },
+  "bonuses": [
+    {
+      "type": "rpg_mod:item_modifier",
+      "modifier": "rpg:make_enchanted_crystal"
+    }
+  ]
+}
