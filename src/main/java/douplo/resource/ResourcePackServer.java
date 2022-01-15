@@ -1,10 +1,12 @@
 package douplo.resource;
 
 import com.google.gson.JsonObject;
+import com.sun.net.httpserver.HttpContext;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import douplo.item.ServerOnlyItem;
+import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.Identifier;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -19,6 +21,7 @@ import java.nio.file.Files;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -29,10 +32,9 @@ public class ResourcePackServer {
 
     public static void initializeResourcePackServer(String address, int port) {
         try {
-            createResourcePack();
             HttpServer server = HttpServer.create(new InetSocketAddress(address, port), 0);
             server.createContext("/test", new MyHttpHandler());
-            server.createContext("/resourcepack.zip", new ResourcePackHandler());
+            HttpContext context = server.createContext("/resourcepack", new ResourcePackHandler());
             server.setExecutor(null);
             server.start();
 
@@ -75,6 +77,26 @@ public class ResourcePackServer {
 
     }
 
+    private static void appendFileToArchive(ZipOutputStream arch, String filename, InputStream stream) {
+        try {
+            arch.putNextEntry(new ZipEntry(filename));
+            InputStreamReader reader = new InputStreamReader(stream);
+
+            int byteRead = -1;
+            while ((byteRead = stream.read()) != -1) {
+                arch.write(byteRead);
+            }
+
+            arch.closeEntry();
+        } catch (FileNotFoundException e) {
+            LOGGER.error(e);
+            e.printStackTrace();
+        } catch (IOException e) {
+            LOGGER.error(e);
+            e.printStackTrace();
+        }
+    }
+
     private static void appendJsonToArchive(ZipOutputStream arch, String filename, JsonObject json) {
         try {
             arch.putNextEntry(new ZipEntry(filename));
@@ -88,6 +110,10 @@ public class ResourcePackServer {
 
     private static String modelIdToPath(Identifier modelId) {
         return "assets/" + modelId.getNamespace() + "/models/" + modelId.getPath() + ".json";
+    }
+
+    private static String identifierToPath(Identifier id) {
+        return "assets/" + id.getNamespace() + "/" + id.getPath();
     }
 
     private static void writeItemModelsToArchive(ZipOutputStream arch) {
@@ -109,10 +135,10 @@ public class ResourcePackServer {
     }
 
     public static String getPackAddress() {
-        return "http://localhost:8000/resourcepack.zip";
+        return "http://localhost:8000/resourcepack/" + getPackHash() + ".zip";
     }
 
-    public static void createResourcePack() {
+    public static void createResourcePack(ResourceManager manager) {
         LOGGER.info("Generating resource pack");
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         ZipOutputStream out = new ZipOutputStream(os);
@@ -132,6 +158,7 @@ public class ResourcePackServer {
         }
 
         writeItemModelsToArchive(out);
+        writeItemResourcesToArchive(out, manager);
 
         try {
             out.close();
@@ -154,6 +181,27 @@ public class ResourcePackServer {
         }
 
         LOGGER.info("Generated resource pack. SHA-1: " + new String(cachedPackHash));
+
+    }
+
+    private static void writeItemResourcesToArchive(ZipOutputStream out, ResourceManager manager) {
+
+        List<ServerOnlyItem.ResourceIdentifier> resources = ServerOnlyItem.getExtraResources();
+        for (ServerOnlyItem.ResourceIdentifier res : resources) {
+
+            LOGGER.info("Writing resource " + res.getFilePath());
+
+            Identifier serverPath = res.getFilePath();
+            Identifier clientPath = res.getDestinationPath();
+
+            try {
+                InputStream stream = manager.getResource(serverPath).getInputStream();
+                appendFileToArchive(out, identifierToPath(clientPath), stream);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+        }
 
     }
 

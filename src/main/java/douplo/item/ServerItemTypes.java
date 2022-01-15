@@ -1,0 +1,22 @@
+package douplo.item;
+
+import douplo.RpgMod;
+import net.minecraft.util.Identifier;
+
+public class ServerItemTypes {
+
+    public static final ServerOnlyItem.Type<ServerOnlyItem> GENERIC = new ServerOnlyItem.Type<>(ServerOnlyItem.GENERIC_SERIALIZER);
+    public static final ServerOnlyItem.Type<ServerToolItem> TOOL = new ServerOnlyItem.Type<>(ServerToolItem.SERIALIZER);
+    public static final ServerOnlyItem.Type<ServerSwordItem> SWORD = new ServerOnlyItem.Type<>(ServerSwordItem.SERIALIZER);
+    public static final ServerOnlyItem.Type<ServerArmorItem> ARMOR = new ServerOnlyItem.Type<>(ServerArmorItem.SERIALIZER);
+
+    public static void registerTypes() {
+
+        ServerOnlyItem.registerType(new Identifier(RpgMod.MODID, "generic"), GENERIC);
+        ServerOnlyItem.registerType(new Identifier(RpgMod.MODID, "tool"), TOOL);
+        ServerOnlyItem.registerType(new Identifier(RpgMod.MODID, "sword"), SWORD);
+        ServerOnlyItem.registerType(new Identifier(RpgMod.MODID, "armor"), ARMOR);
+
+    }
+
+}

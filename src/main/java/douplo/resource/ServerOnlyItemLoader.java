@@ -3,6 +3,7 @@ package douplo.resource;
 import com.google.gson.JsonObject;
 import com.mojang.serialization.Lifecycle;
 import douplo.RpgMod;
+import douplo.item.LoadedMaterial;
 import douplo.item.ServerOnlyItem;
 import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
 import net.minecraft.item.Item;
@@ -16,11 +17,12 @@ import java.util.Optional;
 
 public class ServerOnlyItemLoader implements SimpleSynchronousResourceReloadListener {
 
-    private static final String DIRECTORY_NAME = "server_items";
+    private static final String ITEM_DIRECTORY = "server_items";
+    private static final String MATERIAL_DIRECTORY = "materials";
 
     @Override
     public Identifier getFabricId() {
-        return new Identifier(RpgMod.MODID, DIRECTORY_NAME);
+        return new Identifier(RpgMod.MODID, ITEM_DIRECTORY);
     }
 
     private static void registerItemOrReplace(ServerOnlyItem item) {
@@ -43,22 +45,30 @@ public class ServerOnlyItemLoader implements SimpleSynchronousResourceReloadList
 
         ServerOnlyItem.clearCache();
 
-        for (Identifier filename : manager.findResources(DIRECTORY_NAME, path -> path.endsWith(".json"))) {
+        for (Identifier filename : manager.findResources(MATERIAL_DIRECTORY, path -> path.endsWith(".json"))) {
+            Identifier materialId = ReloadUtils.filenameToObjectId(filename);
+            try {
+                JsonObject materialData = ReloadUtils.jsonFromStream(manager.getResource(filename).getInputStream());
+                LoadedMaterial.loadFromJson(materialId, materialData);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
 
+        for (Identifier filename : manager.findResources(ITEM_DIRECTORY, path -> path.endsWith(".json"))) {
             Identifier itemId = ReloadUtils.filenameToObjectId(filename);
             try {
                 JsonObject itemData = ReloadUtils.jsonFromStream(manager.getResource(filename).getInputStream());
                 ServerOnlyItem item = ServerOnlyItem.fromJson(itemId, itemData);
-
                 registerItemOrReplace(item);
-
             } catch (IOException e) {
                 e.printStackTrace();
             }
-
         }
 
-        ResourcePackServer.createResourcePack();
+        ResourcePackServer.createResourcePack(manager);
+
+        RpgMod.reloadOccured = true;
 
     }
 }

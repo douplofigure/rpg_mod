@@ -1,5 +1,6 @@
 package douplo.mixins;
 
+import douplo.RpgMod;
 import douplo.item.ServerOnlyItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -7,7 +8,9 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.PacketByteBuf;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(PacketByteBuf.class)
 public class PacketByteBufMixin {
@@ -29,6 +32,26 @@ public class PacketByteBufMixin {
             return ((ServerOnlyItem)self.getItem()).getEncodedClientData(self);
         }
         return self.getNbt();
+    }
+
+    @Inject(method = "readItemStack", at=@At(value = "RETURN"), cancellable = true)
+    public void postProcessItemStack(CallbackInfoReturnable<ItemStack> cir) {
+        ItemStack stack = cir.getReturnValue();
+        NbtCompound tag = stack.getNbt();
+        if (tag != null && tag.contains("ServerOnlyItem") && tag.getByte("ServerOnlyItem") != 0) {
+            RpgMod.LOGGER.info("Replacing " + stack.getItem());
+            int modelId = tag.getInt("CustomModelData");
+            ServerOnlyItem item = ServerOnlyItem.getFromItemAndModel(stack.getItem(), modelId);
+            ItemStack realStack = new ItemStack(item, stack.getCount());
+            realStack.setDamage(stack.getDamage());
+
+            realStack.setNbt(tag.copy());
+
+            RpgMod.LOGGER.info("Replaced with " + item);
+
+            cir.setReturnValue(realStack);
+        }
+        //cir.setReturnValue(stack);
     }
 
 }

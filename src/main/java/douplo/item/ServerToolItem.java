@@ -10,8 +10,24 @@ public class ServerToolItem extends ServerOnlyItem {
 
     private final ToolMaterial material;
 
+    public static final Serializer<ServerToolItem> SERIALIZER = new Serializer<ServerToolItem>() {
+        @Override
+        public ServerToolItem fromJson(Identifier id, JsonObject json, DeserializationData data) {
+
+            Identifier materialId = new Identifier(json.get("material").getAsString());
+            ToolMaterial material = LoadedMaterial.getById(materialId);
+
+            return new ServerToolItem(id, material, data.settings, data.clientItem);
+        }
+    };
+
     public ServerToolItem(Identifier id, ToolMaterial material, Item.Settings settings) {
         super(id, settings.maxDamageIfAbsent(material.getDurability()));
+        this.material = material;
+    }
+
+    public ServerToolItem(Identifier id, ToolMaterial material, Item.Settings settings, Item clientItem) {
+        super(id, settings.maxDamageIfAbsent(material.getDurability()), clientItem);
         this.material = material;
     }
 

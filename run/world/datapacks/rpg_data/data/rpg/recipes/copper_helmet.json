@@ -10,7 +10,7 @@
     }
   },
   "result": {
-    "item": "minecraft:chainmail_helmet",
+    "item": "rpg:copper_helmet",
     "name": {
       "translate": "item.rpg.copper_helmet",
       "italic": false

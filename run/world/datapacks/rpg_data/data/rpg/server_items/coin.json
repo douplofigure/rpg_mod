@@ -1,0 +1,8 @@
+{
+  "type": "rpg_mod:generic",
+  "client_item": "minecraft:emerald",
+  "settings": {
+    "max_count": 64
+  },
+  "texture": "rpg:item/coin"
+}

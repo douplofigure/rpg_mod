@@ -5,6 +5,7 @@ import com.mojang.serialization.Lifecycle;
 import douplo.command.Commands;
 import douplo.crafting.*;
 import douplo.event.PlayerRespawnCallback;
+import douplo.item.ServerItemTypes;
 import douplo.item.ServerOnlyItem;
 import douplo.item.ServerToolItem;
 import douplo.loot.condition.LootConditions;
@@ -60,7 +61,7 @@ public class RpgMod implements ModInitializer {
 
     public static PlayerClassMap PLAYER_CLASSES = new PlayerClassMap();
 
-    private static boolean reloadOccured = true;
+    public static boolean reloadOccured = true;
 
     private static final CauldronBehavior CRAFT_CAULDRON_BEHAIVIOR = new CauldronBehavior() {
         @Override
@@ -86,6 +87,8 @@ public class RpgMod implements ModInitializer {
     public void onInitialize() {
 
         ResourcePackServer.initializeResourcePackServer("localhost", 8000);
+
+        ServerItemTypes.registerTypes();
 
         ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(new ServerOnlyItemLoader());
         ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(new SimpleSynchronousResourceReloadListener() {
@@ -182,6 +185,8 @@ public class RpgMod implements ModInitializer {
                 if (reloadOccured) {
                     reloadOccured = false;
                     server.setResourcePack(ResourcePackServer.getPackAddress(), ResourcePackServer.getPackHash());
+                    LOGGER.info(server.getResourcePackHash());
+                    LOGGER.info(server.getResourcePackUrl());
                 }
 
             }

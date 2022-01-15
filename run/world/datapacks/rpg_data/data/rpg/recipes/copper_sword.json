@@ -14,13 +14,7 @@
     }
   },
   "result": {
-    "item": "minecraft:wooden_sword",
-    "nbt": "{CustomModelData:1}",
-    "name": {
-      "translate": "item.rpg.copper_sword",
-      "italic": false,
-      "color": "white"
-    }
+    "item": "rpg:copper_sword"
   },
   "bonuses": [
     {

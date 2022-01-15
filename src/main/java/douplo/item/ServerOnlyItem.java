@@ -9,22 +9,20 @@ import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.attribute.EntityAttribute;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.item.ToolMaterial;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
-import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class ServerOnlyItem extends Item {
+
+    public static final String SERVER_TEXTURE_DIR = "server_textures";
+    public static final String SERVER_MODEL_DIR = "server_models";
 
     private static Map<Identifier, Type<?>> registeredTypes = new HashMap<>();
 
@@ -34,23 +32,26 @@ public class ServerOnlyItem extends Item {
     private static Map<Item, List<ServerOnlyItem>> modelIds = new HashMap<>();
     private static Map<Identifier, ServerOnlyItem> serverOnlyItemMap = new HashMap<>();
 
+    private Optional<Identifier> customModelId = Optional.empty();
+    private Identifier textureId;
+
     public static class DeserializationData {
         Settings settings;
         Item clientItem;
+        Identifier textureId;
+        Optional<Identifier> modelId;
     }
 
     public interface Serializer<T extends ServerOnlyItem> {
         public T fromJson(Identifier id, JsonObject json, DeserializationData data);
     }
 
-    private static final Serializer<ServerOnlyItem> GENERIC_SERIALIZER = new Serializer<ServerOnlyItem>() {
+    public static final Serializer<ServerOnlyItem> GENERIC_SERIALIZER = new Serializer<ServerOnlyItem>() {
         @Override
         public ServerOnlyItem fromJson(Identifier id, JsonObject json, DeserializationData data) {
             return new ServerOnlyItem(id, data.settings, data.clientItem);
         }
     };
-
-    public static final Type<ServerOnlyItem> GENERIC = registerType(new Identifier(RpgMod.MODID, "generic"), GENERIC_SERIALIZER);
 
     public static class Type<T extends ServerOnlyItem> {
 
@@ -66,11 +67,11 @@ public class ServerOnlyItem extends Item {
 
     }
 
-    private static <T extends ServerOnlyItem> Type<T> registerType(Identifier typeId, Serializer<T> serializer) {
+    protected static <T extends ServerOnlyItem> Type<T> registerType(Identifier typeId, Serializer<T> serializer) {
         return registerType(typeId, new Type<>(serializer));
     }
 
-    private static <T extends ServerOnlyItem> Type<T> registerType(Identifier typeId, Type<T> type) {
+    protected static <T extends ServerOnlyItem> Type<T> registerType(Identifier typeId, Type<T> type) {
         registeredTypes.put(typeId, type);
         return type;
     }
@@ -130,13 +131,17 @@ public class ServerOnlyItem extends Item {
         }
 
         boolean writtenModifiers = false;
-        Multimap<EntityAttribute, EntityAttributeModifier> mods = this.getAttributeModifiers(EquipmentSlot.MAINHAND);
         NbtList modifiers = new NbtList();
-        if (!mods.isEmpty()) {
-            writtenModifiers = true;
-            for (Map.Entry<EntityAttribute, EntityAttributeModifier> entry : mods.entries()) {
-                NbtCompound entryTag = entry.getValue().toNbt();
-                modifiers.add(entryTag);
+        for (EquipmentSlot slot : EquipmentSlot.values()) {
+            Multimap<EntityAttribute, EntityAttributeModifier> mods = stack.getAttributeModifiers(slot);
+            if (!mods.isEmpty()) {
+                writtenModifiers = true;
+                for (Map.Entry<EntityAttribute, EntityAttributeModifier> entry : mods.entries()) {
+                    NbtCompound entryTag = entry.getValue().toNbt();
+                    entryTag.putString("AttributeName", Registry.ATTRIBUTE.getId(entry.getKey()).toString());
+                    entryTag.putString("Slot", slot.getName());
+                    modifiers.add(entryTag);
+                }
             }
         }
 
@@ -150,6 +155,8 @@ public class ServerOnlyItem extends Item {
         translate.addProperty("italic", false);
         displayTag.putString("Name", translate.toString());
         tag.put("display", displayTag);
+
+        tag.putByte("ServerOnlyItem", (byte) 1);
 
         RpgMod.LOGGER.info("Sending tag: " + tag + " for item " + this);
 
@@ -187,17 +194,22 @@ public class ServerOnlyItem extends Item {
             JsonArray overrides = new JsonArray();
             for (ServerOnlyItem serverItem : entry.getValue()) {
 
-                Identifier serverModelId = new Identifier(serverItem.id.getNamespace(), "item/" + serverItem.id.getPath());
+                Identifier serverModelId;
+                if (serverItem.customModelId.isEmpty()) {
+                    serverModelId = new Identifier(serverItem.id.getNamespace(), "item/" + serverItem.id.getPath());
+
+                    JsonObject serverModelData = serverItem.getModelData();
+                    modelMap.put(serverModelId, serverModelData);
+
+                } else {
+                    serverModelId = serverItem.customModelId.get();
+                }
 
                 JsonObject clientOverride = new JsonObject();
                 clientOverride.add("predicate", createCustomModelDataPredicate(serverItem.modelId));
                 clientOverride.addProperty("model", serverModelId.toString());
 
                 overrides.add(clientOverride);
-
-                JsonObject serverModelData = serverItem.getModelData();
-
-                modelMap.put(serverModelId, serverModelData);
 
             }
 
@@ -217,7 +229,11 @@ public class ServerOnlyItem extends Item {
         JsonObject modelData = new JsonObject();
         modelData.addProperty("parent", "item/generated");
         JsonObject textures = new JsonObject();
-        textures.addProperty("layer0", this.id.getNamespace() + ":item/" + this.id.getPath());
+        if (this.textureId != null) {
+            textures.addProperty("layer0", this.textureId.toString());
+        } else {
+            textures.addProperty("layer0", this.id.getNamespace() + ":item/" + this.id.getPath());
+        }
         modelData.add("textures", textures);
         return modelData;
     }
@@ -257,10 +273,92 @@ public class ServerOnlyItem extends Item {
             data.clientItem = getDefaultClientItem(maxCount);
         }
 
+        if (json.has("model")) {
+            data.textureId = null;
+            data.modelId = Optional.of(new Identifier(json.get("model").getAsString()));
+        } else {
+            data.textureId = new Identifier(json.get("texture").getAsString());
+            data.modelId = Optional.empty();
+        }
+
         Identifier typeId = new Identifier(json.get("type").getAsString());
 
         return registeredTypes.get(typeId).serializer.fromJson(id, json, data);
 
+    }
+
+    public static class ResourceIdentifier extends Identifier {
+
+        enum ResourceType {
+            TEXTURE,
+            MODEL,
+        }
+
+        private final ResourceType type;
+
+        public ResourceIdentifier(Identifier id, ResourceType type) {
+            this(id.getNamespace(), id.getPath(), type);
+        }
+
+        public ResourceIdentifier(String namespace, String path, ResourceType type) {
+            super(namespace, path);
+            this.type = type;
+        }
+
+        public ResourceType getType() {
+            return type;
+        }
+
+        public Identifier getFilePath() {
+            switch (type) {
+                case MODEL:
+                    return new Identifier(getNamespace(), SERVER_MODEL_DIR + "/" + getPath() + ".json");
+                case TEXTURE:
+                    return new Identifier(getNamespace(), SERVER_TEXTURE_DIR + "/" + getPath() + ".png");
+            }
+            return null;
+        }
+
+        public Identifier getDestinationPath() {
+            switch (type) {
+                case MODEL:
+                    return new Identifier(getNamespace(), "models/" + getPath() + ".json");
+                case TEXTURE:
+                    return new Identifier(getNamespace(), "textures/" + getPath() + ".png");
+            }
+            return null;
+        }
+
+    }
+
+    protected List<ResourceIdentifier> getResources() {
+        List<ResourceIdentifier> resources = new LinkedList<>();
+        if (this.customModelId.isPresent()) {
+            resources.add(new ResourceIdentifier(this.customModelId.get(), ResourceIdentifier.ResourceType.MODEL));
+        } else if (this.textureId != null) {
+            resources.add(new ResourceIdentifier(textureId, ResourceIdentifier.ResourceType.TEXTURE));
+        } else {
+            resources.add(new ResourceIdentifier(this.id.getNamespace(), "item/"+this.id.getPath(), ResourceIdentifier.ResourceType.TEXTURE));
+        }
+        return resources;
+    }
+
+    public static List<ResourceIdentifier> getExtraResources() {
+
+        List<ResourceIdentifier> resources = new LinkedList<>();
+        for (Map.Entry<Item, List<ServerOnlyItem>> entry : modelIds.entrySet()) {
+            for (ServerOnlyItem item : entry.getValue()) {
+                resources.addAll(item.getResources());
+            }
+        }
+
+        return resources;
+
+    }
+
+    public static ServerOnlyItem getFromItemAndModel(Item item, int modelId) {
+        List<ServerOnlyItem> ls = modelIds.get(item);
+        return ls.get(modelId-1);
     }
 
 }
