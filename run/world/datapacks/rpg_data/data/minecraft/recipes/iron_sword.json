@@ -10,8 +10,7 @@
 	    "item": "minecraft:stick"
 	},
 	"X": {
-	    "item": "minecraft:iron_ingot",
-	    "nbt": "{CustomModelData:1}"
+	    "item": "minecraft:iron_ingot"
 	}
     },
     "result": {
