@@ -5,11 +5,13 @@ import douplo.command.Commands;
 import douplo.crafting.*;
 import douplo.event.PlayerRespawnCallback;
 import douplo.item.ServerOnlyItem;
+import douplo.item.ServerToolItem;
 import douplo.loot.condition.LootConditions;
 import douplo.loot.number.NumberProviderTypes;
 import douplo.playerclass.PlayerClass;
 import douplo.playerclass.PlayerClassLoader;
 import douplo.playerclass.PlayerClassMap;
+import douplo.resource.ResourcePackServer;
 import douplo.skill.Skill;
 import douplo.skill.SkillLoader;
 import douplo.skill.SkillTypes;
@@ -24,10 +26,8 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.cauldron.CauldronBehavior;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemGroup;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
+import net.minecraft.item.*;
+import net.minecraft.recipe.Ingredient;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.resource.ResourceType;
 import net.minecraft.screen.NamedScreenHandlerFactory;
@@ -56,6 +56,8 @@ public class RpgMod implements ModInitializer {
 
     public static PlayerClassMap PLAYER_CLASSES = new PlayerClassMap();
 
+    private static boolean reloadOccured = true;
+
     private static final CauldronBehavior CRAFT_CAULDRON_BEHAIVIOR = new CauldronBehavior() {
         @Override
         public ActionResult interact(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, ItemStack stack) {
@@ -71,10 +73,15 @@ public class RpgMod implements ModInitializer {
         }
     };
 
-    public static final Item TEST_ITEM = new ServerOnlyItem(new Item.Settings().group(ItemGroup.TOOLS).maxCount(1).maxDamage(100));
+    public static final Item TEST_ITEM = new ServerOnlyItem(new Identifier(MODID, "test_item"), new Item.Settings().group(ItemGroup.TOOLS).maxCount(1).maxDamage(100));
+
+    public static final ToolMaterial COPPER_TOOL_MATERIAL = ToolMaterials.STONE;
+    public static final Item COPPER_PICKAXE = new ServerToolItem(new Identifier(MODID, "copper_pickaxe"), COPPER_TOOL_MATERIAL, new Item.Settings().group(ItemGroup.TOOLS));
 
     @Override
     public void onInitialize() {
+
+        ResourcePackServer.initializeResourcePackServer("localhost", 8000);
 
         ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(new SimpleSynchronousResourceReloadListener() {
             @Override
@@ -136,6 +143,8 @@ public class RpgMod implements ModInitializer {
                     }
                 }
 
+                ResourcePackServer.createResourcePack();
+
             }
         });
 
@@ -151,6 +160,8 @@ public class RpgMod implements ModInitializer {
             public void onWorldLoad(MinecraftServer server, ServerWorld world) {
                 LOGGER.info("WORLD LOAD!");
 
+                server.setResourcePack(ResourcePackServer.getPackAddress(), ResourcePackServer.getPackHash());
+
                 PLAYER_CLASSES = PlayerClassMap.load(server);
 
                 /*GameRules.BooleanRule rule = world.getGameRules().get(GameRules.DO_LIMITED_CRAFTING);
@@ -162,7 +173,14 @@ public class RpgMod implements ModInitializer {
         ServerTickEvents.END_SERVER_TICK.register(new ServerTickEvents.EndTick() {
             @Override
             public void onEndTick(MinecraftServer server) {
+
                 PLAYER_CLASSES.saveIfDirty(server);
+
+                if (reloadOccured) {
+                    reloadOccured = false;
+                    server.setResourcePack(ResourcePackServer.getPackAddress(), ResourcePackServer.getPackHash());
+                }
+
             }
         });
 
@@ -192,6 +210,7 @@ public class RpgMod implements ModInitializer {
         LootConditions.register();
 
         Registry.register(Registry.ITEM, new Identifier(RpgMod.MODID, "test_item"), TEST_ITEM);
+        Registry.register(Registry.ITEM, new Identifier(RpgMod.MODID, "copper_pickaxe"), COPPER_PICKAXE);
 
         CauldronBehavior.WATER_CAULDRON_BEHAVIOR.put(Items.STICK, CRAFT_CAULDRON_BEHAIVIOR);
         CauldronBehavior.EMPTY_CAULDRON_BEHAVIOR.put(Items.STICK, CRAFT_CAULDRON_BEHAIVIOR);
