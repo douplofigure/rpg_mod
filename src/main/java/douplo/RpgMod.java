@@ -1,6 +1,7 @@
 package douplo;
 
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.serialization.Lifecycle;
 import douplo.command.Commands;
 import douplo.crafting.*;
 import douplo.event.PlayerRespawnCallback;
@@ -12,6 +13,7 @@ import douplo.playerclass.PlayerClass;
 import douplo.playerclass.PlayerClassLoader;
 import douplo.playerclass.PlayerClassMap;
 import douplo.resource.ResourcePackServer;
+import douplo.resource.ServerOnlyItemLoader;
 import douplo.skill.Skill;
 import douplo.skill.SkillLoader;
 import douplo.skill.SkillTypes;
@@ -22,6 +24,7 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
+import net.fabricmc.fabric.impl.biome.modification.BuiltInRegistryKeys;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.cauldron.CauldronBehavior;
 import net.minecraft.client.world.ClientWorld;
@@ -42,11 +45,12 @@ import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.registry.Registry;
+import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.World;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import java.io.InputStream;
-
+import java.util.Optional;
 
 
 public class RpgMod implements ModInitializer {
@@ -83,6 +87,7 @@ public class RpgMod implements ModInitializer {
 
         ResourcePackServer.initializeResourcePackServer("localhost", 8000);
 
+        ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(new ServerOnlyItemLoader());
         ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(new SimpleSynchronousResourceReloadListener() {
             @Override
             public Identifier getFabricId() {
@@ -142,8 +147,6 @@ public class RpgMod implements ModInitializer {
                         e.printStackTrace();
                     }
                 }
-
-                ResourcePackServer.createResourcePack();
 
             }
         });
@@ -209,8 +212,8 @@ public class RpgMod implements ModInitializer {
         NumberProviderTypes.register();
         LootConditions.register();
 
-        Registry.register(Registry.ITEM, new Identifier(RpgMod.MODID, "test_item"), TEST_ITEM);
-        Registry.register(Registry.ITEM, new Identifier(RpgMod.MODID, "copper_pickaxe"), COPPER_PICKAXE);
+        //Registry.register(Registry.ITEM, new Identifier(RpgMod.MODID, "test_item"), TEST_ITEM);
+        //Registry.register(Registry.ITEM, new Identifier(RpgMod.MODID, "copper_pickaxe"), COPPER_PICKAXE);
 
         CauldronBehavior.WATER_CAULDRON_BEHAVIOR.put(Items.STICK, CRAFT_CAULDRON_BEHAIVIOR);
         CauldronBehavior.EMPTY_CAULDRON_BEHAVIOR.put(Items.STICK, CRAFT_CAULDRON_BEHAIVIOR);

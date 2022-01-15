@@ -9,10 +9,13 @@ import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.attribute.EntityAttribute;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
+import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
 
@@ -23,22 +26,69 @@ import java.util.Map;
 
 public class ServerOnlyItem extends Item {
 
+    private static Map<Identifier, Type<?>> registeredTypes = new HashMap<>();
+
     private final Item clientItem;
     private final int modelId;
     private final Identifier id;
     private static Map<Item, List<ServerOnlyItem>> modelIds = new HashMap<>();
     private static Map<Identifier, ServerOnlyItem> serverOnlyItemMap = new HashMap<>();
 
+    public static class DeserializationData {
+        Settings settings;
+        Item clientItem;
+    }
+
+    public interface Serializer<T extends ServerOnlyItem> {
+        public T fromJson(Identifier id, JsonObject json, DeserializationData data);
+    }
+
+    private static final Serializer<ServerOnlyItem> GENERIC_SERIALIZER = new Serializer<ServerOnlyItem>() {
+        @Override
+        public ServerOnlyItem fromJson(Identifier id, JsonObject json, DeserializationData data) {
+            return new ServerOnlyItem(id, data.settings, data.clientItem);
+        }
+    };
+
+    public static final Type<ServerOnlyItem> GENERIC = registerType(new Identifier(RpgMod.MODID, "generic"), GENERIC_SERIALIZER);
+
+    public static class Type<T extends ServerOnlyItem> {
+
+         private final Serializer<T> serializer;
+
+        public Type(Serializer<T> serializer) {
+            this.serializer = serializer;
+        }
+
+        public Serializer<T> getSerializer() {
+            return serializer;
+        }
+
+    }
+
+    private static <T extends ServerOnlyItem> Type<T> registerType(Identifier typeId, Serializer<T> serializer) {
+        return registerType(typeId, new Type<>(serializer));
+    }
+
+    private static <T extends ServerOnlyItem> Type<T> registerType(Identifier typeId, Type<T> type) {
+        registeredTypes.put(typeId, type);
+        return type;
+    }
+
+    private static Item getDefaultClientItem(int maxCount) {
+        if (maxCount == 1) {
+            return Items.CARROT_ON_A_STICK;
+        } else if (maxCount == 16) {
+            return Items.ENDER_PEARL;
+        } else {
+            return Items.SLIME_BALL;
+        }
+    }
+
     public ServerOnlyItem(Identifier id, Settings settings) {
         super(settings);
         this.id = id;
-        if (this.getMaxCount() == 1) {
-            this.clientItem = Items.CARROT_ON_A_STICK;
-        } else if (this.getMaxCount() == 16) {
-            this.clientItem = Items.ENDER_PEARL;
-        } else {
-            this.clientItem = Items.SLIME_BALL;
-        }
+        this.clientItem = getDefaultClientItem(this.getMaxCount());
         modelId = registerModelId(this);
         registerServerOnlyItem(id, this);
     }
@@ -93,6 +143,13 @@ public class ServerOnlyItem extends Item {
         if (writtenModifiers) {
             tag.put("AttributeModifiers", modifiers);
         }
+
+        NbtCompound displayTag = new NbtCompound();
+        JsonObject translate = new JsonObject();
+        translate.addProperty("translate", this.getTranslationKey());
+        translate.addProperty("italic", false);
+        displayTag.putString("Name", translate.toString());
+        tag.put("display", displayTag);
 
         RpgMod.LOGGER.info("Sending tag: " + tag + " for item " + this);
 
@@ -171,5 +228,39 @@ public class ServerOnlyItem extends Item {
         return predicate;
     }
 
+    public static void clearCache() {
+        serverOnlyItemMap.clear();
+        modelIds.clear();
+    }
+
+    public static ServerOnlyItem fromJson(Identifier id, JsonObject json) {
+
+        DeserializationData data = new DeserializationData();
+        data.settings = new Settings();
+
+        int maxCount = 64;
+        if (json.has("settings")) {
+            JsonObject settings = json.getAsJsonObject("settings");
+            if (settings.has("max_count")) {
+                maxCount = settings.get("max_count").getAsInt();
+                data.settings.maxCount(maxCount);
+            }
+            if (settings.has("max_damage")) {
+                data.settings.maxDamage(settings.get("max_damage").getAsInt());
+            }
+        }
+
+        if (json.has("client_item")) {
+            Identifier clientItemId = new Identifier(json.get("client_item").getAsString());
+            data.clientItem = Registry.ITEM.get(clientItemId);
+        } else {
+            data.clientItem = getDefaultClientItem(maxCount);
+        }
+
+        Identifier typeId = new Identifier(json.get("type").getAsString());
+
+        return registeredTypes.get(typeId).serializer.fromJson(id, json, data);
+
+    }
 
 }
