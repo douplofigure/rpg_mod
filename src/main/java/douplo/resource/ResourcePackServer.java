@@ -5,6 +5,7 @@ import com.sun.net.httpserver.HttpContext;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
+import douplo.item.GenericServerItem;
 import douplo.item.ServerOnlyItem;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.Identifier;
@@ -23,6 +24,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -186,8 +188,8 @@ public class ResourcePackServer {
 
     private static void writeItemResourcesToArchive(ZipOutputStream out, ResourceManager manager) {
 
-        List<ServerOnlyItem.ResourceIdentifier> resources = ServerOnlyItem.getExtraResources();
-        for (ServerOnlyItem.ResourceIdentifier res : resources) {
+        Set<ServerOnlyItem.ResourceIdentifier> resources = ServerOnlyItem.getExtraResources();
+        for (GenericServerItem.ResourceIdentifier res : resources) {
 
             LOGGER.info("Writing resource " + res.getFilePath());
 

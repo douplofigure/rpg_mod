@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 import com.mojang.serialization.Lifecycle;
 import douplo.RpgMod;
 import douplo.item.LoadedMaterial;
+import douplo.item.GenericServerItem;
 import douplo.item.ServerOnlyItem;
 import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
 import net.minecraft.item.Item;
@@ -15,26 +16,22 @@ import net.minecraft.util.registry.RegistryKey;
 import java.io.IOException;
 import java.util.Optional;
 
-public class ServerOnlyItemLoader implements SimpleSynchronousResourceReloadListener {
+public class ServerOnlyItemLoader implements Reloader {
 
     private static final String ITEM_DIRECTORY = "server_items";
     private static final String MATERIAL_DIRECTORY = "materials";
 
-    @Override
-    public Identifier getFabricId() {
-        return new Identifier(RpgMod.MODID, ITEM_DIRECTORY);
-    }
 
     private static void registerItemOrReplace(ServerOnlyItem item) {
 
         Optional<Item> optional = Registry.ITEM.getOrEmpty(item.getId());
         if (optional.isEmpty()) {
-            Registry.register(Registry.ITEM, item.getId(), item);
+            Registry.register(Registry.ITEM, item.getId(), item.asItem());
         } else {
 
             Item oldItem = optional.get();
             int rawId = Registry.ITEM.getRawId(oldItem);
-            Registry.ITEM.set(rawId, RegistryKey.of(Registry.ITEM_KEY, item.getId()), item, Lifecycle.stable());
+            Registry.ITEM.set(rawId, RegistryKey.of(Registry.ITEM_KEY, item.getId()), item.asItem(), Lifecycle.stable());
 
         }
 

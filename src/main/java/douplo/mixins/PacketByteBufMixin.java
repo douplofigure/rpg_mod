@@ -1,6 +1,7 @@
 package douplo.mixins;
 
 import douplo.RpgMod;
+import douplo.item.GenericServerItem;
 import douplo.item.ServerOnlyItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -39,19 +40,14 @@ public class PacketByteBufMixin {
         ItemStack stack = cir.getReturnValue();
         NbtCompound tag = stack.getNbt();
         if (tag != null && tag.contains("ServerOnlyItem") && tag.getByte("ServerOnlyItem") != 0) {
-            RpgMod.LOGGER.info("Replacing " + stack.getItem());
             int modelId = tag.getInt("CustomModelData");
             ServerOnlyItem item = ServerOnlyItem.getFromItemAndModel(stack.getItem(), modelId);
             ItemStack realStack = new ItemStack(item, stack.getCount());
             realStack.setDamage(stack.getDamage());
-
             realStack.setNbt(tag.copy());
-
-            RpgMod.LOGGER.info("Replaced with " + item);
-
             cir.setReturnValue(realStack);
         }
-        //cir.setReturnValue(stack);
+
     }
 
 }

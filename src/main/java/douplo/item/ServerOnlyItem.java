@@ -9,53 +9,111 @@ import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.attribute.EntityAttribute;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemConvertible;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.item.ToolMaterial;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtList;
+import net.minecraft.resource.Resource;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
 
 import java.util.*;
 
-public class ServerOnlyItem extends Item {
+public interface ServerOnlyItem extends ItemConvertible {
 
     public static final String SERVER_TEXTURE_DIR = "server_textures";
     public static final String SERVER_MODEL_DIR = "server_models";
+    public static final String SERVER_EXTRA_DIR = "extra_resources";
 
-    private static Map<Identifier, Type<?>> registeredTypes = new HashMap<>();
+    static Map<Item, List<ServerOnlyItem>> modelIds = new HashMap<>();
+    static Map<Identifier, ServerOnlyItem> serverOnlyItemMap = new HashMap<>();
 
-    private final Item clientItem;
-    private final int modelId;
-    private final Identifier id;
-    private static Map<Item, List<ServerOnlyItem>> modelIds = new HashMap<>();
-    private static Map<Identifier, ServerOnlyItem> serverOnlyItemMap = new HashMap<>();
-
-    private Optional<Identifier> customModelId = Optional.empty();
-    private Identifier textureId;
+    static Map<Identifier, Type<?>> registeredTypes = new HashMap<>();
 
     public static class DeserializationData {
-        Settings settings;
+        Item.Settings settings;
         Item clientItem;
         Identifier textureId;
         Optional<Identifier> modelId;
     }
 
-    public interface Serializer<T extends ServerOnlyItem> {
+
+    public static class ResourceIdentifier extends Identifier {
+
+        enum ResourceType {
+            TEXTURE,
+            MODEL,
+            GENERIC_FILE,
+        }
+
+        private final ResourceType type;
+
+        public ResourceIdentifier(Identifier id, ResourceType type) {
+            this(id.getNamespace(), id.getPath(), type);
+        }
+
+        public ResourceIdentifier(String namespace, String path, ResourceType type) {
+            super(namespace, path);
+            this.type = type;
+        }
+
+        public ResourceType getType() {
+            return type;
+        }
+
+        public Identifier getFilePath() {
+            switch (type) {
+                case MODEL:
+                    return new Identifier(getNamespace(), SERVER_MODEL_DIR + "/" + getPath() + ".json");
+                case TEXTURE:
+                    return new Identifier(getNamespace(), SERVER_TEXTURE_DIR + "/" + getPath() + ".png");
+                case GENERIC_FILE:
+                    return new Identifier(getNamespace(), SERVER_EXTRA_DIR + "/" +getPath());
+            }
+            return null;
+        }
+
+        public Identifier getDestinationPath() {
+            switch (type) {
+                case MODEL:
+                    return new Identifier(getNamespace(), "models/" + getPath() + ".json");
+                case TEXTURE:
+                    return new Identifier(getNamespace(), "textures/" + getPath() + ".png");
+                case GENERIC_FILE:
+                    return new Identifier(getNamespace(), getPath());
+            }
+            return null;
+        }
+
+        public int hashCode() {
+            return 127 * this.namespace.hashCode() + 3 * this.path.hashCode() + this.type.hashCode();
+        }
+
+        public int compareTo(Identifier identifier) {
+            if (!(identifier instanceof ResourceIdentifier)) {
+                return -1;
+            }
+            if (((ResourceIdentifier)identifier).type == this.type) {
+
+                int i = this.path.compareTo(identifier.getPath());
+                if (i == 0) {
+                    i = this.namespace.compareTo(identifier.getNamespace());
+                }
+                return i;
+            }
+            return this.type.hashCode() - ((ResourceIdentifier)identifier).type.hashCode();
+        }
+
+    }
+
+    public static interface Serializer<T extends ServerOnlyItem> {
         public T fromJson(Identifier id, JsonObject json, DeserializationData data);
     }
 
-    public static final Serializer<ServerOnlyItem> GENERIC_SERIALIZER = new Serializer<ServerOnlyItem>() {
-        @Override
-        public ServerOnlyItem fromJson(Identifier id, JsonObject json, DeserializationData data) {
-            return new ServerOnlyItem(id, data.settings, data.clientItem);
-        }
-    };
-
     public static class Type<T extends ServerOnlyItem> {
 
-         private final Serializer<T> serializer;
+        private final Serializer<T> serializer;
 
         public Type(Serializer<T> serializer) {
             this.serializer = serializer;
@@ -67,16 +125,16 @@ public class ServerOnlyItem extends Item {
 
     }
 
-    protected static <T extends ServerOnlyItem> Type<T> registerType(Identifier typeId, Serializer<T> serializer) {
+    static <T extends ServerOnlyItem> Type<T> registerType(Identifier typeId, Serializer<T> serializer) {
         return registerType(typeId, new Type<>(serializer));
     }
 
-    protected static <T extends ServerOnlyItem> Type<T> registerType(Identifier typeId, Type<T> type) {
+    static <T extends ServerOnlyItem> Type<T> registerType(Identifier typeId, Type<T> type) {
         registeredTypes.put(typeId, type);
         return type;
     }
 
-    private static Item getDefaultClientItem(int maxCount) {
+    static Item getDefaultClientItem(int maxCount) {
         if (maxCount == 1) {
             return Items.CARROT_ON_A_STICK;
         } else if (maxCount == 16) {
@@ -86,47 +144,81 @@ public class ServerOnlyItem extends Item {
         }
     }
 
-    public ServerOnlyItem(Identifier id, Settings settings) {
-        super(settings);
-        this.id = id;
-        this.clientItem = getDefaultClientItem(this.getMaxCount());
-        modelId = registerModelId(this);
-        registerServerOnlyItem(id, this);
+    default Set<ResourceIdentifier> getResources() {
+        Set<ResourceIdentifier> resources = new HashSet<>();
+        if (this.getCustomModelId().isPresent()) {
+            resources.add(new ResourceIdentifier(this.getCustomModelId().get(), ResourceIdentifier.ResourceType.MODEL));
+        } else if (this.getTextureId() != null) {
+            resources.add(new ResourceIdentifier(getTextureId(), ResourceIdentifier.ResourceType.TEXTURE));
+        } else {
+            resources.add(new ResourceIdentifier(this.getId().getNamespace(), "item/"+this.getId().getPath(), ResourceIdentifier.ResourceType.TEXTURE));
+        }
+        return resources;
     }
 
-    private void registerServerOnlyItem(Identifier id, ServerOnlyItem serverOnlyItem) {
-        serverOnlyItemMap.put(id, serverOnlyItem);
+    Identifier getTextureId();
+
+    Identifier getId();
+
+    public static Set<ResourceIdentifier> getExtraResources() {
+
+        Set<ResourceIdentifier> resources = new HashSet<>();
+        for (Map.Entry<Item, List<ServerOnlyItem>> entry : modelIds.entrySet()) {
+            for (ServerOnlyItem item : entry.getValue()) {
+                resources.addAll(item.getResources());
+            }
+        }
+
+        return resources;
+
     }
 
-    public ServerOnlyItem(Identifier id, Settings settings, Item clientItem) {
-        super(settings);
-        this.id = id;
-        this.clientItem = clientItem;
-        modelId = registerModelId(this);
-        registerServerOnlyItem(id, this);
+    public static ServerOnlyItem getFromItemAndModel(Item item, int modelId) {
+        List<ServerOnlyItem> ls = modelIds.get(item);
+        return ls.get(modelId-1);
     }
 
-    public Item getClientItem() {
-        return this.clientItem;
+    static JsonElement createCustomModelDataPredicate(int modelId) {
+        JsonObject predicate = new JsonObject();
+        predicate.addProperty("custom_model_data", modelId);
+        return predicate;
     }
 
-    public Identifier getId() {
-        return this.id;
+    public static void clearCache() {
+        serverOnlyItemMap.clear();
+        modelIds.clear();
     }
 
-    public boolean isNbtSynced() {
-        return true;
+    public Item getClientItem();
+    public int getModelId();
+    public int getMaxDamage();
+    public default String getTranslationKey() {
+        return "item."+getId().getNamespace() +"."+ getId().getNamespace();
+    }
+    Optional<Identifier> getCustomModelId();
+
+    default JsonObject getModelData()  {
+        JsonObject modelData = new JsonObject();
+        modelData.addProperty("parent", "item/generated");
+        JsonObject textures = new JsonObject();
+        if (this.getTextureId() != null) {
+            textures.addProperty("layer0", this.getTextureId().toString());
+        } else {
+            textures.addProperty("layer0", this.getId().getNamespace() + ":item/" + this.getId().getPath());
+        }
+        modelData.add("textures", textures);
+        return modelData;
     }
 
-    public NbtCompound getEncodedClientData(ItemStack stack) {
+    public default NbtCompound getEncodedClientData(ItemStack stack) {
         NbtCompound tag = stack.getNbt();
         if (tag == null)
             tag = new NbtCompound();
 
-        tag.putInt("CustomModelData", modelId);
+        tag.putInt("CustomModelData", getModelId());
 
         if (this.getMaxDamage() > 0) {
-            int clientDamage = stack.getDamage() * clientItem.getMaxDamage() / this.getMaxDamage();
+            int clientDamage = stack.getDamage() * getClientItem().getMaxDamage() / this.getMaxDamage();
             tag.putInt("Damage", clientDamage);
         }
 
@@ -158,21 +250,7 @@ public class ServerOnlyItem extends Item {
 
         tag.putByte("ServerOnlyItem", (byte) 1);
 
-        RpgMod.LOGGER.info("Sending tag: " + tag + " for item " + this);
-
         return tag;
-    }
-
-    private static int registerModelId(ServerOnlyItem serverOnlyItem) {
-
-        Item clientItem = serverOnlyItem.getClientItem();
-        if (!modelIds.containsKey(clientItem))
-            modelIds.put(clientItem, new ArrayList<>());
-
-        int modelId = modelIds.get(clientItem).size() + 1;
-        modelIds.get(clientItem).add(serverOnlyItem);
-        return modelId;
-
     }
 
     public static Map<Identifier, JsonObject> generateModelOverrides() {
@@ -195,18 +273,18 @@ public class ServerOnlyItem extends Item {
             for (ServerOnlyItem serverItem : entry.getValue()) {
 
                 Identifier serverModelId;
-                if (serverItem.customModelId.isEmpty()) {
-                    serverModelId = new Identifier(serverItem.id.getNamespace(), "item/" + serverItem.id.getPath());
+                if (serverItem.getCustomModelId().isEmpty()) {
+                    serverModelId = new Identifier(serverItem.getId().getNamespace(), "item/" + serverItem.getId().getPath());
 
                     JsonObject serverModelData = serverItem.getModelData();
                     modelMap.put(serverModelId, serverModelData);
 
                 } else {
-                    serverModelId = serverItem.customModelId.get();
+                    serverModelId = serverItem.getCustomModelId().get();
                 }
 
                 JsonObject clientOverride = new JsonObject();
-                clientOverride.add("predicate", createCustomModelDataPredicate(serverItem.modelId));
+                clientOverride.add("predicate", ServerOnlyItem.createCustomModelDataPredicate(serverItem.getModelId()));
                 clientOverride.addProperty("model", serverModelId.toString());
 
                 overrides.add(clientOverride);
@@ -225,34 +303,10 @@ public class ServerOnlyItem extends Item {
 
     }
 
-    protected JsonObject getModelData() {
-        JsonObject modelData = new JsonObject();
-        modelData.addProperty("parent", "item/generated");
-        JsonObject textures = new JsonObject();
-        if (this.textureId != null) {
-            textures.addProperty("layer0", this.textureId.toString());
-        } else {
-            textures.addProperty("layer0", this.id.getNamespace() + ":item/" + this.id.getPath());
-        }
-        modelData.add("textures", textures);
-        return modelData;
-    }
-
-    private static JsonElement createCustomModelDataPredicate(int modelId) {
-        JsonObject predicate = new JsonObject();
-        predicate.addProperty("custom_model_data", modelId);
-        return predicate;
-    }
-
-    public static void clearCache() {
-        serverOnlyItemMap.clear();
-        modelIds.clear();
-    }
-
     public static ServerOnlyItem fromJson(Identifier id, JsonObject json) {
 
         DeserializationData data = new DeserializationData();
-        data.settings = new Settings();
+        data.settings = new Item.Settings();
 
         int maxCount = 64;
         if (json.has("settings")) {
@@ -270,7 +324,7 @@ public class ServerOnlyItem extends Item {
             Identifier clientItemId = new Identifier(json.get("client_item").getAsString());
             data.clientItem = Registry.ITEM.get(clientItemId);
         } else {
-            data.clientItem = getDefaultClientItem(maxCount);
+            data.clientItem = ServerOnlyItem.getDefaultClientItem(maxCount);
         }
 
         if (json.has("model")) {
@@ -283,82 +337,25 @@ public class ServerOnlyItem extends Item {
 
         Identifier typeId = new Identifier(json.get("type").getAsString());
 
-        return registeredTypes.get(typeId).serializer.fromJson(id, json, data);
+        return registeredTypes.get(typeId).getSerializer().fromJson(id, json, data);
+    }
+
+    static int registerModelId(ServerOnlyItem serverOnlyItem) {
+
+        Item clientItem = serverOnlyItem.getClientItem();
+        if (clientItem == null)
+            throw new NullPointerException("NULL-client-item");
+        if (!modelIds.containsKey(clientItem))
+            modelIds.put(clientItem, new ArrayList<>());
+
+        int modelId = modelIds.get(clientItem).size() + 1;
+        modelIds.get(clientItem).add(serverOnlyItem);
+        return modelId;
 
     }
 
-    public static class ResourceIdentifier extends Identifier {
-
-        enum ResourceType {
-            TEXTURE,
-            MODEL,
-        }
-
-        private final ResourceType type;
-
-        public ResourceIdentifier(Identifier id, ResourceType type) {
-            this(id.getNamespace(), id.getPath(), type);
-        }
-
-        public ResourceIdentifier(String namespace, String path, ResourceType type) {
-            super(namespace, path);
-            this.type = type;
-        }
-
-        public ResourceType getType() {
-            return type;
-        }
-
-        public Identifier getFilePath() {
-            switch (type) {
-                case MODEL:
-                    return new Identifier(getNamespace(), SERVER_MODEL_DIR + "/" + getPath() + ".json");
-                case TEXTURE:
-                    return new Identifier(getNamespace(), SERVER_TEXTURE_DIR + "/" + getPath() + ".png");
-            }
-            return null;
-        }
-
-        public Identifier getDestinationPath() {
-            switch (type) {
-                case MODEL:
-                    return new Identifier(getNamespace(), "models/" + getPath() + ".json");
-                case TEXTURE:
-                    return new Identifier(getNamespace(), "textures/" + getPath() + ".png");
-            }
-            return null;
-        }
-
-    }
-
-    protected List<ResourceIdentifier> getResources() {
-        List<ResourceIdentifier> resources = new LinkedList<>();
-        if (this.customModelId.isPresent()) {
-            resources.add(new ResourceIdentifier(this.customModelId.get(), ResourceIdentifier.ResourceType.MODEL));
-        } else if (this.textureId != null) {
-            resources.add(new ResourceIdentifier(textureId, ResourceIdentifier.ResourceType.TEXTURE));
-        } else {
-            resources.add(new ResourceIdentifier(this.id.getNamespace(), "item/"+this.id.getPath(), ResourceIdentifier.ResourceType.TEXTURE));
-        }
-        return resources;
-    }
-
-    public static List<ResourceIdentifier> getExtraResources() {
-
-        List<ResourceIdentifier> resources = new LinkedList<>();
-        for (Map.Entry<Item, List<ServerOnlyItem>> entry : modelIds.entrySet()) {
-            for (ServerOnlyItem item : entry.getValue()) {
-                resources.addAll(item.getResources());
-            }
-        }
-
-        return resources;
-
-    }
-
-    public static ServerOnlyItem getFromItemAndModel(Item item, int modelId) {
-        List<ServerOnlyItem> ls = modelIds.get(item);
-        return ls.get(modelId-1);
+    static void registerServerOnlyItem(Identifier id, ServerOnlyItem serverOnlyItem) {
+        serverOnlyItemMap.put(id, serverOnlyItem);
     }
 
 }

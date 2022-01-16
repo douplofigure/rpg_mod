@@ -10,7 +10,8 @@
     "CrossBowItemMixin",
     "MiningToolItemMixin",
     "PlayerManagerMixin",
-    "PacketByteBufMixin"
+    "PacketByteBufMixin",
+    "RecipeManagerMixin"
   ],
   "client": [
   ],

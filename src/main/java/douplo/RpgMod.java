@@ -1,18 +1,18 @@
 package douplo;
 
 import com.mojang.brigadier.CommandDispatcher;
-import com.mojang.serialization.Lifecycle;
 import douplo.command.Commands;
 import douplo.crafting.*;
 import douplo.event.PlayerRespawnCallback;
 import douplo.item.ServerItemTypes;
-import douplo.item.ServerOnlyItem;
+import douplo.item.GenericServerItem;
 import douplo.item.ServerToolItem;
 import douplo.loot.condition.LootConditions;
 import douplo.loot.number.NumberProviderTypes;
 import douplo.playerclass.PlayerClass;
 import douplo.playerclass.PlayerClassLoader;
 import douplo.playerclass.PlayerClassMap;
+import douplo.resource.ReloadManager;
 import douplo.resource.ResourcePackServer;
 import douplo.resource.ServerOnlyItemLoader;
 import douplo.skill.Skill;
@@ -25,13 +25,10 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
-import net.fabricmc.fabric.impl.biome.modification.BuiltInRegistryKeys;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.cauldron.CauldronBehavior;
-import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.*;
-import net.minecraft.recipe.Ingredient;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.resource.ResourceType;
 import net.minecraft.screen.NamedScreenHandlerFactory;
@@ -45,13 +42,10 @@ import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.registry.Registry;
-import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.World;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import java.io.InputStream;
-import java.util.Optional;
 
 
 public class RpgMod implements ModInitializer {
@@ -78,7 +72,7 @@ public class RpgMod implements ModInitializer {
         }
     };
 
-    public static final Item TEST_ITEM = new ServerOnlyItem(new Identifier(MODID, "test_item"), new Item.Settings().group(ItemGroup.TOOLS).maxCount(1).maxDamage(100));
+    public static final Item TEST_ITEM = new GenericServerItem(new Identifier(MODID, "test_item"), new Item.Settings().group(ItemGroup.TOOLS).maxCount(1).maxDamage(100));
 
     public static final ToolMaterial COPPER_TOOL_MATERIAL = ToolMaterials.STONE;
     public static final Item COPPER_PICKAXE = new ServerToolItem(new Identifier(MODID, "copper_pickaxe"), COPPER_TOOL_MATERIAL, new Item.Settings().group(ItemGroup.TOOLS));
@@ -90,7 +84,7 @@ public class RpgMod implements ModInitializer {
 
         ServerItemTypes.registerTypes();
 
-        ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(new ServerOnlyItemLoader());
+        ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(new ReloadManager());
         ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(new SimpleSynchronousResourceReloadListener() {
             @Override
             public Identifier getFabricId() {
