@@ -285,6 +285,9 @@ public interface ServerOnlyItem extends ItemConvertible {
         for (Map.Entry<Item, List<ServerOnlyItem>> entry : modelIds.entrySet()) {
 
             Item clientItem = entry.getKey();
+            if (clientItem == Items.CROSSBOW)
+                continue;
+
             Identifier clientItemId = Registry.ITEM.getId(clientItem);
             Identifier clientModelId = new Identifier(clientItemId.getNamespace(), "item/" + clientItemId.getPath());
 

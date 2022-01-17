@@ -14,13 +14,7 @@
     }
   },
   "result": {
-    "item": "minecraft:crossbow",
-    "nbt": "{CustomModelData:1}",
-    "name": {
-      "translate": "item.rpg.wizard_staff",
-      "color": "light_purple",
-      "italic": false
-    }
+    "item": "rpg:wizard_staff"
   },
   "bonuses": [
     {

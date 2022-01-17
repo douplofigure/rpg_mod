@@ -7,7 +7,6 @@
     "CraftingScreenHandlerMixin",
     "StatTypeMixin",
     "SmithingScreenHandlerMixin",
-    "CrossBowItemMixin",
     "MiningToolItemMixin",
     "PlayerManagerMixin",
     "PacketByteBufMixin",

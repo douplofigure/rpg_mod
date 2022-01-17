@@ -60,9 +60,6 @@ public class RpgMod implements ModInitializer {
 
     public static boolean reloadOccured = true;
 
-    public static final Identifier WIZARD_STAFF_ID = new Identifier("rpg:wizard_staff");
-    public static final WizardStaffItem WIZARD_STAFF = new WizardStaffItem(WIZARD_STAFF_ID, new Item.Settings().maxDamage(254).rarity(Rarity.EPIC));
-
     private static final CauldronBehavior CRAFT_CAULDRON_BEHAIVIOR = new CauldronBehavior() {
         @Override
         public ActionResult interact(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, ItemStack stack) {
@@ -212,10 +209,6 @@ public class RpgMod implements ModInitializer {
         NumberProviderTypes.register();
         LootConditions.register();
 
-        //Registry.register(Registry.ITEM, new Identifier(RpgMod.MODID, "test_item"), TEST_ITEM);
-        //Registry.register(Registry.ITEM, new Identifier(RpgMod.MODID, "copper_pickaxe"), COPPER_PICKAXE);
-
-        Registry.register(Registry.ITEM, WIZARD_STAFF_ID, WIZARD_STAFF);
 
         CauldronBehavior.WATER_CAULDRON_BEHAVIOR.put(Items.STICK, CRAFT_CAULDRON_BEHAIVIOR);
         CauldronBehavior.EMPTY_CAULDRON_BEHAVIOR.put(Items.STICK, CRAFT_CAULDRON_BEHAIVIOR);
