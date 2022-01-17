@@ -25,9 +25,9 @@ public class ServerSwordItem  extends ServerToolItem implements Vanishable {
 
     public static final Serializer<ServerSwordItem> SERIALIZER = new Serializer<ServerSwordItem>() {
         @Override
-        public ServerSwordItem fromJson(Identifier id, JsonObject json, DeserializationData data) {
+        public ServerSwordItem fromJson(Identifier id, JsonObject json, ItemData data) {
             Identifier materialId = new Identifier(json.get("material").getAsString());
-            ToolMaterial material = LoadedMaterial.getById(materialId);
+            ToolMaterial material = LoadedMaterial.getById(materialId).getToolMaterial();
 
             int attackDamage = 2;
             float attackSpeed = 1.4f;
@@ -39,12 +39,12 @@ public class ServerSwordItem  extends ServerToolItem implements Vanishable {
                 attackSpeed = json.get("attack_speed").getAsFloat();
             }
 
-            return new ServerSwordItem(id, material, attackDamage, attackSpeed, data.settings, data.clientItem);
+            return new ServerSwordItem(id, material, attackDamage, attackSpeed, data.settings, data);
         }
     };
 
-    public ServerSwordItem(Identifier id, ToolMaterial toolMaterial, int attackDamage, float attackSpeed, Item.Settings settings, Item clientItem) {
-        super(id, toolMaterial, settings, clientItem);
+    public ServerSwordItem(Identifier id, ToolMaterial toolMaterial, int attackDamage, float attackSpeed, Item.Settings settings, ItemData data) {
+        super(id, toolMaterial, settings, data);
         this.attackDamage = (float)attackDamage + toolMaterial.getAttackDamage();
         ImmutableMultimap.Builder<EntityAttribute, EntityAttributeModifier> builder = ImmutableMultimap.builder();
         builder.put(EntityAttributes.GENERIC_ATTACK_DAMAGE, new EntityAttributeModifier(ATTACK_DAMAGE_MODIFIER_ID, "Weapon modifier", (double)this.attackDamage, EntityAttributeModifier.Operation.ADDITION));

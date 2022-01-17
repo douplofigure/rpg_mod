@@ -13,6 +13,8 @@ public class ReloadManager implements SimpleSynchronousResourceReloadListener {
 
     public static void reloadItems(ResourceManager manager) {
         itemsLoaded = false;
+        ServerOnlyItem.registerServerOnlyItem(RpgMod.WIZARD_STAFF_ID, RpgMod.WIZARD_STAFF);
+        ServerOnlyItem.registerModelId(RpgMod.WIZARD_STAFF);
         itemLoader.reload(manager);
         RpgMod.LOGGER.info("Done loading items");
         itemsLoaded = true;
@@ -25,6 +27,8 @@ public class ReloadManager implements SimpleSynchronousResourceReloadListener {
 
     @Override
     public void reload(ResourceManager manager) {
+
+        ResourcePackServer.createResourcePack(manager);
 
     }
 

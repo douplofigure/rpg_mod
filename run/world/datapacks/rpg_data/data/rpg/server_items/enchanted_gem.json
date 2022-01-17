@@ -1,0 +1,10 @@
+{
+  "type": "rpg_mod:generic",
+  "client_item": "minecraft:amethyst_shard",
+  "settings": {
+    "max_count": 64,
+    "rarity": "epic"
+  },
+  "texture": "rpg:item/enchanted_gem",
+  "display_name": "Enchanted Gem"
+}

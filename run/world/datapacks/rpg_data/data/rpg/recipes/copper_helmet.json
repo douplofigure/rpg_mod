@@ -10,12 +10,7 @@
     }
   },
   "result": {
-    "item": "rpg:copper_helmet",
-    "name": {
-      "translate": "item.rpg.copper_helmet",
-      "italic": false
-    },
-    "nbt": "{CustomModelData:1}"
+    "item": "rpg:copper_helmet"
   },
   "bonuses": [
     {

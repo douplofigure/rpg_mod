@@ -49,16 +49,6 @@ public abstract class CrossBowItemMixin {
 
     }
 
-    /**
-     * @author
-     * @reason
-     * @return
-     */
-    @Overwrite
-    public Predicate<ItemStack> getProjectiles() {
-        return RangedWeaponItem.BOW_PROJECTILES.or(stack -> stack.isOf(Items.FIRE_CHARGE));
-    }
-
     @Redirect(method = "shootAll",
     at=@At(value="INVOKE", target="Lnet/minecraft/item/CrossbowItem;shoot(Lnet/minecraft/world/World;Lnet/minecraft/entity/LivingEntity;Lnet/minecraft/util/Hand;Lnet/minecraft/item/ItemStack;Lnet/minecraft/item/ItemStack;FZFFF)V"))
     private static void shoot(World world, LivingEntity shooter, Hand hand, ItemStack crossbow, ItemStack projectile, float soundPitch, boolean creative, float speed, float divergence, float simulated) {

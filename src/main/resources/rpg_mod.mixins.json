@@ -11,7 +11,8 @@
     "MiningToolItemMixin",
     "PlayerManagerMixin",
     "PacketByteBufMixin",
-    "RecipeManagerMixin"
+    "RecipeManagerMixin",
+    "ItemStackMixin"
   ],
   "client": [
   ],

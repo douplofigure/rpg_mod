@@ -1,0 +1,8 @@
+{
+  "type": "rpg_mod:armor",
+  "client_item": "minecraft:iron_boots",
+  "texture": "rpg:item/copper_boots",
+  "material": "rpg:copper",
+  "slot": "feet",
+  "display_name": "Copper Boots"
+}

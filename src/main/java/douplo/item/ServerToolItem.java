@@ -4,40 +4,37 @@ import com.google.gson.JsonObject;
 import net.minecraft.item.*;
 import net.minecraft.util.Identifier;
 
-import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 public class ServerToolItem extends ToolItem implements ServerOnlyItem {
 
-    private final Item clientItem;
     private final int modelId;
     private final Identifier id;
 
-    private Optional<Identifier> customModelId = Optional.empty();
-    private Identifier textureId;
+    private final ItemData itemData;
 
     public static final Serializer<ServerToolItem> SERIALIZER = new Serializer<ServerToolItem>() {
         @Override
-        public ServerToolItem fromJson(Identifier id, JsonObject json, DeserializationData data) {
+        public ServerToolItem fromJson(Identifier id, JsonObject json, ItemData data) {
 
             Identifier materialId = new Identifier(json.get("material").getAsString());
-            ToolMaterial material = LoadedMaterial.getById(materialId);
+            ToolMaterial material = LoadedMaterial.getById(materialId).getToolMaterial();
 
-            return new ServerToolItem(id, material, data.settings, data.clientItem);
+            return new ServerToolItem(id, material, data.settings, data);
         }
     };
 
-    public ServerToolItem(Identifier id, ToolMaterial material, Item.Settings settings) {
+    /*public ServerToolItem(Identifier id, ToolMaterial material, Item.Settings settings) {
         super(material, settings.maxDamageIfAbsent(material.getDurability()));
         this.id = id;
-        this.clientItem = Items.CARROT_ON_A_STICK;
         this.modelId = ServerOnlyItem.registerModelId(this);
         ServerOnlyItem.registerServerOnlyItem(id, this);
-    }
+    }*/
 
-    public ServerToolItem(Identifier id, ToolMaterial material, Item.Settings settings, Item clientItem) {
+    public ServerToolItem(Identifier id, ToolMaterial material, Item.Settings settings, ItemData data) {
         super(material, settings.maxDamageIfAbsent(material.getDurability()));
-        this.clientItem = clientItem;
+        this.itemData = data;
         this.modelId = ServerOnlyItem.registerModelId(this);
         this.id = id;
         ServerOnlyItem.registerServerOnlyItem(id, this);
@@ -54,7 +51,12 @@ public class ServerToolItem extends ToolItem implements ServerOnlyItem {
 
     @Override
     public Identifier getTextureId() {
-        return textureId;
+        return itemData.textureId;
+    }
+
+    @Override
+    public Set<ResourceIdentifier> getExtraResources() {
+        return itemData.extraResources;
     }
 
     @Override
@@ -64,7 +66,7 @@ public class ServerToolItem extends ToolItem implements ServerOnlyItem {
 
     @Override
     public Item getClientItem() {
-        return clientItem;
+        return itemData.clientItem;
     }
 
     @Override
@@ -74,10 +76,15 @@ public class ServerToolItem extends ToolItem implements ServerOnlyItem {
 
     @Override
     public Optional<Identifier> getCustomModelId() {
-        return customModelId;
+        return itemData.modelId;
     }
 
     public Item asItem() {
         return this;
     }
+
+    public String getDisplayNameForLangFile() {
+        return itemData.displayName;
+    }
+
 }

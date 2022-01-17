@@ -1,6 +1,6 @@
 {
   "type": "rpg_mod:generic",
-  "client_item": "minecraft:emerald",
+  "client_item": "minecraft:fire_charge",
   "settings": {
     "max_count": 64
   },

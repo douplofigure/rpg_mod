@@ -7,6 +7,7 @@ import douplo.event.PlayerRespawnCallback;
 import douplo.item.ServerItemTypes;
 import douplo.item.GenericServerItem;
 import douplo.item.ServerToolItem;
+import douplo.item.WizardStaffItem;
 import douplo.loot.condition.LootConditions;
 import douplo.loot.number.NumberProviderTypes;
 import douplo.playerclass.PlayerClass;
@@ -41,7 +42,9 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.Rarity;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.registry.Registry;
 import net.minecraft.world.World;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -57,6 +60,9 @@ public class RpgMod implements ModInitializer {
 
     public static boolean reloadOccured = true;
 
+    public static final Identifier WIZARD_STAFF_ID = new Identifier("rpg:wizard_staff");
+    public static final WizardStaffItem WIZARD_STAFF = new WizardStaffItem(WIZARD_STAFF_ID, new Item.Settings().maxDamage(254).rarity(Rarity.EPIC));
+
     private static final CauldronBehavior CRAFT_CAULDRON_BEHAIVIOR = new CauldronBehavior() {
         @Override
         public ActionResult interact(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, ItemStack stack) {
@@ -71,11 +77,6 @@ public class RpgMod implements ModInitializer {
             return ActionResult.CONSUME;
         }
     };
-
-    public static final Item TEST_ITEM = new GenericServerItem(new Identifier(MODID, "test_item"), new Item.Settings().group(ItemGroup.TOOLS).maxCount(1).maxDamage(100));
-
-    public static final ToolMaterial COPPER_TOOL_MATERIAL = ToolMaterials.STONE;
-    public static final Item COPPER_PICKAXE = new ServerToolItem(new Identifier(MODID, "copper_pickaxe"), COPPER_TOOL_MATERIAL, new Item.Settings().group(ItemGroup.TOOLS));
 
     @Override
     public void onInitialize() {
@@ -213,6 +214,8 @@ public class RpgMod implements ModInitializer {
 
         //Registry.register(Registry.ITEM, new Identifier(RpgMod.MODID, "test_item"), TEST_ITEM);
         //Registry.register(Registry.ITEM, new Identifier(RpgMod.MODID, "copper_pickaxe"), COPPER_PICKAXE);
+
+        Registry.register(Registry.ITEM, WIZARD_STAFF_ID, WIZARD_STAFF);
 
         CauldronBehavior.WATER_CAULDRON_BEHAVIOR.put(Items.STICK, CRAFT_CAULDRON_BEHAIVIOR);
         CauldronBehavior.EMPTY_CAULDRON_BEHAVIOR.put(Items.STICK, CRAFT_CAULDRON_BEHAIVIOR);

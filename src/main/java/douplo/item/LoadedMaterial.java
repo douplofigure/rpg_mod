@@ -13,7 +13,7 @@ import net.minecraft.util.Identifier;
 import java.util.HashMap;
 import java.util.Map;
 
-public class LoadedMaterial implements ToolMaterial, ArmorMaterial {
+public class LoadedMaterial {
 
     private final int durability;
     private final float miningSpeedMultiplier;
@@ -36,6 +36,79 @@ public class LoadedMaterial implements ToolMaterial, ArmorMaterial {
     }
 
 
+    private ToolMaterial toolMaterial = new ToolMaterial() {
+        @Override
+        public int getDurability() {
+            return durability;
+        }
+
+        @Override
+        public float getMiningSpeedMultiplier() {
+            return miningSpeedMultiplier;
+        }
+
+        @Override
+        public float getAttackDamage() {
+            return attackDamage;
+        }
+
+        @Override
+        public int getMiningLevel() {
+            return miningLevel;
+        }
+
+        @Override
+        public int getEnchantability() {
+            return enchantability;
+        }
+
+        @Override
+        public Ingredient getRepairIngredient() {
+            return repairIngredient;
+        }
+    };
+
+    private ArmorMaterial armorMaterial = new ArmorMaterial() {
+        @Override
+        public int getDurability(EquipmentSlot slot) {
+            return durability;
+        }
+
+        @Override
+        public int getProtectionAmount(EquipmentSlot slot) {
+            return protectionAmounts[slot.getEntitySlotId()];
+        }
+
+        @Override
+        public int getEnchantability() {
+            return enchantability;
+        }
+
+        @Override
+        public SoundEvent getEquipSound() {
+            return SoundEvents.ITEM_ARMOR_EQUIP_IRON;
+        }
+
+        @Override
+        public Ingredient getRepairIngredient() {
+            return repairIngredient;
+        }
+
+        @Override
+        public String getName() {
+            return name;
+        }
+
+        @Override
+        public float getToughness() {
+            return toughness;
+        }
+
+        @Override
+        public float getKnockbackResistance() {
+            return knockbackResistance;
+        }
+    };
 
 
     public LoadedMaterial(int durability, float miningSpeedMultiplier, float attackDamage, int miningLevel, int enchantability, Ingredient repairIngredient, int durabilityMultiplier, int[] protectionAmounts, String name, float toughness, float knockbackResistance) {
@@ -52,64 +125,12 @@ public class LoadedMaterial implements ToolMaterial, ArmorMaterial {
         this.knockbackResistance = knockbackResistance;
     }
 
-    @Override
-    public int getDurability() {
-        return durability;
+    public ArmorMaterial getArmorMaterial() {
+        return armorMaterial;
     }
 
-    @Override
-    public float getMiningSpeedMultiplier() {
-        return miningSpeedMultiplier;
-    }
-
-    @Override
-    public float getAttackDamage() {
-        return attackDamage;
-    }
-
-    @Override
-    public int getMiningLevel() {
-        return miningLevel;
-    }
-
-    @Override
-    public int getDurability(EquipmentSlot slot) {
-        return BASE_DURABILITY[slot.getEntitySlotId()] * this.durabilityMultiplier;
-    }
-
-    @Override
-    public int getProtectionAmount(EquipmentSlot slot) {
-        return protectionAmounts[slot.getEntitySlotId()];
-    }
-
-    @Override
-    public int getEnchantability() {
-        return enchantability;
-    }
-
-    @Override
-    public SoundEvent getEquipSound() {
-        return SoundEvents.ITEM_ARMOR_EQUIP_IRON;
-    }
-
-    @Override
-    public Ingredient getRepairIngredient() {
-        return repairIngredient;
-    }
-
-    @Override
-    public String getName() {
-        return this.name;
-    }
-
-    @Override
-    public float getToughness() {
-        return this.toughness;
-    }
-
-    @Override
-    public float getKnockbackResistance() {
-        return this.knockbackResistance;
+    public ToolMaterial getToolMaterial() {
+        return toolMaterial;
     }
 
     public static LoadedMaterial fromJson(JsonObject json) {

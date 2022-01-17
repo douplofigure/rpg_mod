@@ -11,12 +11,7 @@
     }
   },
   "result": {
-    "item": "minecraft:chainmail_chestplate",
-    "name": {
-      "translate": "item.rpg.copper_chestplate",
-      "italic": false
-    },
-    "nbt": "{CustomModelData:1}"
+    "item": "rpg:copper_chestplate"
   },
   "bonuses": [
     {

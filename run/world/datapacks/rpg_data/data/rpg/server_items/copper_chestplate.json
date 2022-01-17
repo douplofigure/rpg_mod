@@ -1,0 +1,8 @@
+{
+  "type": "rpg_mod:armor",
+  "client_item": "minecraft:iron_chestplate",
+  "texture": "rpg:item/copper_chestplate",
+  "material": "rpg:copper",
+  "slot": "chest",
+  "display_name": "Copper Chestplate"
+}

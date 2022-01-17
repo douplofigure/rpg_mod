@@ -21,10 +21,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -129,6 +126,19 @@ public class ResourcePackServer {
 
     }
 
+    private static JsonObject generateLangFile() {
+
+        JsonObject langFile = new JsonObject();
+        Collection<ServerOnlyItem> items = ServerOnlyItem.getItems();
+
+        for (ServerOnlyItem i : items) {
+            langFile.addProperty(i.getTranslationKey(), i.getDisplayNameForLangFile());
+        }
+
+        return langFile;
+
+    }
+
     private static byte[] cachedPackData;
     private static String cachedPackHash;
 
@@ -162,6 +172,9 @@ public class ResourcePackServer {
         writeItemModelsToArchive(out);
         writeItemResourcesToArchive(out, manager);
 
+        JsonObject langFile = generateLangFile();
+        appendJsonToArchive(out, "assets/minecraft/lang/en_us.json", langFile);
+
         try {
             out.close();
         } catch (IOException e) {
@@ -188,7 +201,7 @@ public class ResourcePackServer {
 
     private static void writeItemResourcesToArchive(ZipOutputStream out, ResourceManager manager) {
 
-        Set<ServerOnlyItem.ResourceIdentifier> resources = ServerOnlyItem.getExtraResources();
+        Set<ServerOnlyItem.ResourceIdentifier> resources = ServerOnlyItem.getItemResources();
         for (GenericServerItem.ResourceIdentifier res : resources) {
 
             LOGGER.info("Writing resource " + res.getFilePath());
@@ -201,6 +214,20 @@ public class ResourcePackServer {
                 appendFileToArchive(out, identifierToPath(clientPath), stream);
             } catch (IOException e) {
                 e.printStackTrace();
+            }
+
+            if (res.getType() == ServerOnlyItem.ResourceIdentifier.ResourceType.TEXTURE) {
+                Identifier mcmetaServerPath = new Identifier(serverPath.getNamespace(), serverPath.getPath() + ".mcmeta");
+                Identifier mcmetaClientPath = new Identifier(clientPath.getNamespace(), clientPath.getPath() + ".mcmeta");
+                if (manager.containsResource(mcmetaServerPath)) {
+                    InputStream stream = null;
+                    try {
+                        stream = manager.getResource(mcmetaServerPath).getInputStream();
+                        appendFileToArchive(out, identifierToPath(mcmetaClientPath), stream);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
             }
 
         }

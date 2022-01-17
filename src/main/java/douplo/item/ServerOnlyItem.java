@@ -8,40 +8,43 @@ import douplo.RpgMod;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.attribute.EntityAttribute;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemConvertible;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
+import net.minecraft.item.*;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtList;
-import net.minecraft.resource.Resource;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.Rarity;
 import net.minecraft.util.registry.Registry;
 
 import java.util.*;
 
 public interface ServerOnlyItem extends ItemConvertible {
 
-    public static final String SERVER_TEXTURE_DIR = "server_textures";
-    public static final String SERVER_MODEL_DIR = "server_models";
-    public static final String SERVER_EXTRA_DIR = "extra_resources";
+    public static final String SERVER_TEXTURE_DIR = "resources/textures";
+    public static final String SERVER_MODEL_DIR = "resources/models";
+    public static final String SERVER_EXTRA_DIR = "resources";
 
     static Map<Item, List<ServerOnlyItem>> modelIds = new HashMap<>();
     static Map<Identifier, ServerOnlyItem> serverOnlyItemMap = new HashMap<>();
 
     static Map<Identifier, Type<?>> registeredTypes = new HashMap<>();
 
-    public static class DeserializationData {
+    public static Collection<ServerOnlyItem> getItems() {
+        return serverOnlyItemMap.values();
+    }
+
+    public static class ItemData {
         Item.Settings settings;
         Item clientItem;
         Identifier textureId;
         Optional<Identifier> modelId;
+        String displayName;
+        Set<ResourceIdentifier> extraResources;
     }
 
 
     public static class ResourceIdentifier extends Identifier {
 
-        enum ResourceType {
+        public enum ResourceType {
             TEXTURE,
             MODEL,
             GENERIC_FILE,
@@ -105,10 +108,22 @@ public interface ServerOnlyItem extends ItemConvertible {
             return this.type.hashCode() - ((ResourceIdentifier)identifier).type.hashCode();
         }
 
+        public static ResourceIdentifier fromString(String string) {
+            int index = string.indexOf(":");
+            Identifier id = new Identifier(string.substring(index+1));
+            String typeString = string.substring(0, index);
+            ResourceType type = ResourceType.valueOf(typeString.toUpperCase());
+            return new ResourceIdentifier(id, type);
+        }
+
+        @Override
+        public String toString() {
+            return this.type.toString().toLowerCase(Locale.ROOT) + ":" + super.toString();
+        }
     }
 
     public static interface Serializer<T extends ServerOnlyItem> {
-        public T fromJson(Identifier id, JsonObject json, DeserializationData data);
+        public T fromJson(Identifier id, JsonObject json, ItemData data);
     }
 
     public static class Type<T extends ServerOnlyItem> {
@@ -147,20 +162,23 @@ public interface ServerOnlyItem extends ItemConvertible {
     default Set<ResourceIdentifier> getResources() {
         Set<ResourceIdentifier> resources = new HashSet<>();
         if (this.getCustomModelId().isPresent()) {
-            resources.add(new ResourceIdentifier(this.getCustomModelId().get(), ResourceIdentifier.ResourceType.MODEL));
+            ResourceIdentifier modelId = new ResourceIdentifier(this.getCustomModelId().get(), ResourceIdentifier.ResourceType.MODEL);
         } else if (this.getTextureId() != null) {
             resources.add(new ResourceIdentifier(getTextureId(), ResourceIdentifier.ResourceType.TEXTURE));
         } else {
             resources.add(new ResourceIdentifier(this.getId().getNamespace(), "item/"+this.getId().getPath(), ResourceIdentifier.ResourceType.TEXTURE));
         }
+        resources.addAll(getExtraResources());
         return resources;
     }
 
+
     Identifier getTextureId();
-
+    Set<ResourceIdentifier> getExtraResources();
     Identifier getId();
+    String getDisplayNameForLangFile();
 
-    public static Set<ResourceIdentifier> getExtraResources() {
+    public static Set<ResourceIdentifier> getItemResources() {
 
         Set<ResourceIdentifier> resources = new HashSet<>();
         for (Map.Entry<Item, List<ServerOnlyItem>> entry : modelIds.entrySet()) {
@@ -175,6 +193,10 @@ public interface ServerOnlyItem extends ItemConvertible {
 
     public static ServerOnlyItem getFromItemAndModel(Item item, int modelId) {
         List<ServerOnlyItem> ls = modelIds.get(item);
+
+        if (ls == null) {
+            return null;
+        }
         return ls.get(modelId-1);
     }
 
@@ -241,11 +263,14 @@ public interface ServerOnlyItem extends ItemConvertible {
             tag.put("AttributeModifiers", modifiers);
         }
 
-        NbtCompound displayTag = new NbtCompound();
-        JsonObject translate = new JsonObject();
-        translate.addProperty("translate", this.getTranslationKey());
-        translate.addProperty("italic", false);
-        displayTag.putString("Name", translate.toString());
+        NbtCompound displayTag = tag.contains("display") ? tag.getCompound("display") : new NbtCompound();
+        if (!displayTag.contains("Name")) {
+            JsonObject translate = new JsonObject();
+            translate.addProperty("translate", this.getTranslationKey());
+            translate.addProperty("italic", false);
+            translate.addProperty("color", stack.getRarity().formatting.getName());
+            displayTag.putString("Name", translate.toString());
+        }
         tag.put("display", displayTag);
 
         tag.putByte("ServerOnlyItem", (byte) 1);
@@ -305,8 +330,9 @@ public interface ServerOnlyItem extends ItemConvertible {
 
     public static ServerOnlyItem fromJson(Identifier id, JsonObject json) {
 
-        DeserializationData data = new DeserializationData();
+        ItemData data = new ItemData();
         data.settings = new Item.Settings();
+        data.extraResources = new HashSet<>();
 
         int maxCount = 64;
         if (json.has("settings")) {
@@ -318,6 +344,17 @@ public interface ServerOnlyItem extends ItemConvertible {
             if (settings.has("max_damage")) {
                 data.settings.maxDamage(settings.get("max_damage").getAsInt());
             }
+
+            if (settings.has("rarity")) {
+                data.settings.rarity(Rarity.valueOf(settings.get("rarity").getAsString().toUpperCase()));
+            }
+
+        }
+
+        if (json.has("display_name")) {
+            data.displayName = json.get("display_name").getAsString();
+        } else {
+            data.displayName = id.getPath();
         }
 
         if (json.has("client_item")) {
@@ -333,6 +370,14 @@ public interface ServerOnlyItem extends ItemConvertible {
         } else {
             data.textureId = new Identifier(json.get("texture").getAsString());
             data.modelId = Optional.empty();
+        }
+
+        if (json.has("extra_resources")) {
+            JsonArray array = json.getAsJsonArray("extra_resources");
+            for (int i = 0; i < array.size(); ++i) {
+                String elem = array.get(i).getAsString();
+                data.extraResources.add(ResourceIdentifier.fromString(elem));
+            }
         }
 
         Identifier typeId = new Identifier(json.get("type").getAsString());

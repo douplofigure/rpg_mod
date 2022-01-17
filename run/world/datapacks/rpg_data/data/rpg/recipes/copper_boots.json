@@ -10,12 +10,7 @@
     }
   },
   "result": {
-    "item": "minecraft:chainmail_boots",
-    "name": {
-      "translate": "item.rpg.copper_boots",
-      "italic": false
-    },
-    "nbt": "{CustomModelData:1}"
+    "item": "rpg:copper_boots"
   },
   "bonuses": [
     {

@@ -15,6 +15,7 @@ import net.minecraft.util.registry.RegistryKey;
 
 import java.io.IOException;
 import java.util.Optional;
+import java.util.OptionalInt;
 
 public class ServerOnlyItemLoader implements Reloader {
 
@@ -31,7 +32,7 @@ public class ServerOnlyItemLoader implements Reloader {
 
             Item oldItem = optional.get();
             int rawId = Registry.ITEM.getRawId(oldItem);
-            Registry.ITEM.set(rawId, RegistryKey.of(Registry.ITEM_KEY, item.getId()), item.asItem(), Lifecycle.stable());
+            Registry.ITEM.replace(OptionalInt.of(rawId), RegistryKey.of(Registry.ITEM_KEY, item.getId()), item.asItem(), Lifecycle.stable());
 
         }
 
@@ -62,8 +63,6 @@ public class ServerOnlyItemLoader implements Reloader {
                 e.printStackTrace();
             }
         }
-
-        ResourcePackServer.createResourcePack(manager);
 
         RpgMod.reloadOccured = true;
 

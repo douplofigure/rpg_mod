@@ -4,5 +4,6 @@
   "texture": "rpg:item/copper_sword",
   "material": "rpg:copper",
   "attack_damage": 4,
-  "attack_speed": -1.0
+  "attack_speed": -1.0,
+  "display_name": "Copper Sword"
 }

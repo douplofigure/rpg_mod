@@ -6,29 +6,29 @@ import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.item.*;
 import net.minecraft.util.Identifier;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
 public class ServerArmorItem extends ArmorItem implements ServerOnlyItem {
 
     private final Identifier id;
-    private final Item clientItem;
     private final int modelId;
+
+    private final ItemData itemData;
 
     public static final ServerOnlyItem.Serializer<ServerArmorItem> SERIALIZER = new ServerOnlyItem.Serializer<ServerArmorItem>() {
         @Override
-        public ServerArmorItem fromJson(Identifier id, JsonObject json, ServerOnlyItem.DeserializationData data) {
-            ArmorMaterial material = LoadedMaterial.getById(new Identifier(json.get("material").getAsString()));
+        public ServerArmorItem fromJson(Identifier id, JsonObject json, ItemData data) {
+            ArmorMaterial material = LoadedMaterial.getById(new Identifier(json.get("material").getAsString())).getArmorMaterial();
             EquipmentSlot slot = EquipmentSlot.byName(json.get("slot").getAsString());
-            return new ServerArmorItem(id, material, slot, data.settings, data.clientItem);
+            return new ServerArmorItem(id, material, slot, data.settings, data);
         }
     };
 
-    public ServerArmorItem(Identifier id, ArmorMaterial material, EquipmentSlot slot, Settings settings, Item clientItem) {
+    public ServerArmorItem(Identifier id, ArmorMaterial material, EquipmentSlot slot, Settings settings, ItemData data) {
         super(material, slot, settings);
         this.id = id;
-        this.clientItem = clientItem;
+        this.itemData = data;
         this.modelId = ServerOnlyItem.registerModelId(this);
         ServerOnlyItem.registerServerOnlyItem(id, this);
     }
@@ -48,13 +48,18 @@ public class ServerArmorItem extends ArmorItem implements ServerOnlyItem {
     }
 
     @Override
+    public Set<ResourceIdentifier> getExtraResources() {
+        return itemData.extraResources;
+    }
+
+    @Override
     public Identifier getId() {
         return id;
     }
 
     @Override
     public Item getClientItem() {
-        return clientItem;
+        return itemData.clientItem;
     }
 
     @Override
@@ -64,10 +69,14 @@ public class ServerArmorItem extends ArmorItem implements ServerOnlyItem {
 
     @Override
     public Optional<Identifier> getCustomModelId() {
-        return Optional.empty();
+        return itemData.modelId;
     }
 
     public Item asItem() {
         return this;
+    }
+
+    public String getDisplayNameForLangFile() {
+        return itemData.displayName;
     }
 }

@@ -1,0 +1,8 @@
+{
+  "type": "rpg_mod:armor",
+  "client_item": "minecraft:iron_helmet",
+  "texture": "rpg:item/copper_helmet",
+  "material": "rpg:copper",
+  "slot": "head",
+  "display_name": "Copper Helmet"
+}

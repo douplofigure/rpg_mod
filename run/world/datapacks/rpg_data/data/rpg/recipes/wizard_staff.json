@@ -10,8 +10,7 @@
       "item": "minecraft:stick"
     },
     "X": {
-      "item": "minecraft:amethyst_shard",
-      "nbt": "{CustomModelData:1}"
+      "item": "rpg:enchanted_gem"
     }
   },
   "result": {
