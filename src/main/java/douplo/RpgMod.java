@@ -4,12 +4,18 @@ import com.mojang.brigadier.CommandDispatcher;
 import douplo.command.Commands;
 import douplo.crafting.*;
 import douplo.event.PlayerRespawnCallback;
-import douplo.item.ServerOnlyItem;
+import douplo.item.ServerItemTypes;
+import douplo.item.GenericServerItem;
+import douplo.item.ServerToolItem;
+import douplo.item.WizardStaffItem;
 import douplo.loot.condition.LootConditions;
 import douplo.loot.number.NumberProviderTypes;
 import douplo.playerclass.PlayerClass;
 import douplo.playerclass.PlayerClassLoader;
 import douplo.playerclass.PlayerClassMap;
+import douplo.resource.ReloadManager;
+import douplo.resource.ResourcePackServer;
+import douplo.resource.ServerOnlyItemLoader;
 import douplo.skill.Skill;
 import douplo.skill.SkillLoader;
 import douplo.skill.SkillTypes;
@@ -22,12 +28,9 @@ import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.cauldron.CauldronBehavior;
-import net.minecraft.client.world.ClientWorld;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemGroup;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
+import net.minecraft.item.*;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.resource.ResourceType;
 import net.minecraft.screen.NamedScreenHandlerFactory;
@@ -40,13 +43,18 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.Rarity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.registry.Registry;
+import net.minecraft.village.TradeOffer;
+import net.minecraft.village.TradeOffers;
 import net.minecraft.world.World;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import java.io.InputStream;
+import org.jetbrains.annotations.Nullable;
 
+import java.io.InputStream;
+import java.util.Random;
 
 
 public class RpgMod implements ModInitializer {
@@ -55,6 +63,8 @@ public class RpgMod implements ModInitializer {
     public static final Logger LOGGER = LogManager.getLogger(MODID);
 
     public static PlayerClassMap PLAYER_CLASSES = new PlayerClassMap();
+
+    public static boolean reloadOccured = true;
 
     private static final CauldronBehavior CRAFT_CAULDRON_BEHAIVIOR = new CauldronBehavior() {
         @Override
@@ -71,11 +81,14 @@ public class RpgMod implements ModInitializer {
         }
     };
 
-    public static final Item TEST_ITEM = new ServerOnlyItem(new Item.Settings().group(ItemGroup.TOOLS).maxCount(1).maxDamage(100));
-
     @Override
     public void onInitialize() {
 
+        ResourcePackServer.initializeResourcePackServer("localhost", 8000);
+
+        ServerItemTypes.registerTypes();
+
+        ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(new ReloadManager());
         ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(new SimpleSynchronousResourceReloadListener() {
             @Override
             public Identifier getFabricId() {
@@ -151,6 +164,8 @@ public class RpgMod implements ModInitializer {
             public void onWorldLoad(MinecraftServer server, ServerWorld world) {
                 LOGGER.info("WORLD LOAD!");
 
+                server.setResourcePack(ResourcePackServer.getPackAddress(), ResourcePackServer.getPackHash());
+
                 PLAYER_CLASSES = PlayerClassMap.load(server);
 
                 /*GameRules.BooleanRule rule = world.getGameRules().get(GameRules.DO_LIMITED_CRAFTING);
@@ -162,7 +177,16 @@ public class RpgMod implements ModInitializer {
         ServerTickEvents.END_SERVER_TICK.register(new ServerTickEvents.EndTick() {
             @Override
             public void onEndTick(MinecraftServer server) {
+
                 PLAYER_CLASSES.saveIfDirty(server);
+
+                if (reloadOccured) {
+                    reloadOccured = false;
+                    server.setResourcePack(ResourcePackServer.getPackAddress(), ResourcePackServer.getPackHash());
+                    LOGGER.info(server.getResourcePackHash());
+                    LOGGER.info(server.getResourcePackUrl());
+                }
+
             }
         });
 
@@ -191,7 +215,6 @@ public class RpgMod implements ModInitializer {
         NumberProviderTypes.register();
         LootConditions.register();
 
-        Registry.register(Registry.ITEM, new Identifier(RpgMod.MODID, "test_item"), TEST_ITEM);
 
         CauldronBehavior.WATER_CAULDRON_BEHAVIOR.put(Items.STICK, CRAFT_CAULDRON_BEHAIVIOR);
         CauldronBehavior.EMPTY_CAULDRON_BEHAVIOR.put(Items.STICK, CRAFT_CAULDRON_BEHAIVIOR);
@@ -206,5 +229,20 @@ public class RpgMod implements ModInitializer {
 
         LOGGER.info(SkillTypes.CRAFTING);
 
+        replaceWanderingTraderTrades();
+
     }
+
+    private static void replaceWanderingTraderTrades() {
+        TradeOffers.Factory[] factories = TradeOffers.WANDERING_TRADER_TRADES.get(1);
+        factories[0] = new TradeOffers.Factory() {
+            @Nullable
+            @Override
+            public TradeOffer create(Entity entity, Random random) {
+                return new TradeOffer(new ItemStack(Items.STICK), new ItemStack(Items.FLINT_AND_STEEL), 12, 15, 0.76f);
+            }
+        };
+        TradeOffers.WANDERING_TRADER_TRADES.put(1, factories);
+    }
+
 }

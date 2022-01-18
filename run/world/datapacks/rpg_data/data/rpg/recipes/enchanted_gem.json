@@ -20,12 +20,8 @@
     }
   ],
   "result": {
-    "item": "minecraft:amethyst_shard"
+    "item": "rpg:enchanted_gem"
   },
   "bonuses": [
-    {
-      "type": "rpg_mod:item_modifier",
-      "modifier": "rpg:make_enchanted_crystal"
-    }
   ]
 }

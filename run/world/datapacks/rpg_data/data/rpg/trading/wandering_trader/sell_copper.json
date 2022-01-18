@@ -1,0 +1,9 @@
+{
+  "buy": {
+    "item": "rpg:coin"
+  },
+  "sell": {
+    "item": "minecraft:copper_ingot",
+    "count": 2
+  }
+}

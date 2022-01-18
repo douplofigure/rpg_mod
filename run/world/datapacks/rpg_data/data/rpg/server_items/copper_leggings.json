@@ -1,0 +1,8 @@
+{
+  "type": "rpg_mod:armor",
+  "client_item": "minecraft:iron_leggings",
+  "texture": "rpg:item/copper_leggings",
+  "material": "rpg:copper",
+  "slot": "legs",
+  "display_name": "Copper Leggings"
+}

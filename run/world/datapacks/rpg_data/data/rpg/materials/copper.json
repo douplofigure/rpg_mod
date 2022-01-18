@@ -1,0 +1,15 @@
+{
+  "durability": 128,
+  "attack_damage": 4.75,
+  "mining_speed": 5.6,
+  "mining_level": 3,
+  "enchantability": 10,
+  "repair_ingredient": {
+    "item": "minecraft:copper_ingot"
+  },
+  "armor_durability": 12,
+  "protection_amounts": [2, 5, 6, 3],
+  "name": "copper",
+  "armor_toughness": 0,
+  "knockback_resistance": 0
+}

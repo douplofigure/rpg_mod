@@ -24,7 +24,7 @@ public class SmithingBonusRecipe extends SmithingRecipe implements BonusRecipe<I
         public SmithingRecipe read(Identifier id, JsonObject json) {
             Ingredient ingredient = NBTIngredient.fromJson(JsonHelper.getObject(json, "base"));
             Ingredient ingredient2 = NBTIngredient.fromJson(JsonHelper.getObject(json, "addition"));
-            ItemStack itemStack = ShapedRecipe.outputFromJson(JsonHelper.getObject(json, "result"));
+            ItemStack itemStack = BonusRecipe.readResultStack(JsonHelper.getObject(json, "result"));
 
             List<CraftingBonus> bonuses = BonusRecipe.readBonuses(json);
 
