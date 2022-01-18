@@ -8,13 +8,7 @@
     }
   ],
   "result": {
-    "item": "minecraft:fire_charge",
-    "count": 4,
-    "name": {
-      "translate": "item.rpg.fire_spell",
-      "color": "gold",
-      "italic": "false"
-    }
+    "item": "rpg:fire_spell"
   },
   "bonuses": [
     {

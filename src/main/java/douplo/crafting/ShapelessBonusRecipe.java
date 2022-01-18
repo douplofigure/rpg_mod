@@ -33,7 +33,7 @@ public class ShapelessBonusRecipe extends ShapelessRecipe implements BonusRecipe
         } else if (defaultedList.size() > 9) {
             throw new JsonParseException("Too many ingredients for shapeless recipe");
         } else {
-            ItemStack itemStack = ShapedRecipe.outputFromJson(JsonHelper.getObject(jsonObject, "result"));
+            ItemStack itemStack = BonusRecipe.readResultStack(JsonHelper.getObject(jsonObject, "result"));
             return new ShapelessRecipe(identifier, string, itemStack, defaultedList);
         }
     }

@@ -1,15 +1,13 @@
 package douplo.item;
 
 import com.google.common.collect.Lists;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import douplo.mixins.CrossBowItemMixin;
 import net.minecraft.advancement.criterion.Criteria;
 import net.minecraft.entity.CrossbowUser;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.FireballEntity;
-import net.minecraft.entity.projectile.FireworkRocketEntity;
-import net.minecraft.entity.projectile.PersistentProjectileEntity;
 import net.minecraft.entity.projectile.ProjectileEntity;
 import net.minecraft.item.CrossbowItem;
 import net.minecraft.item.Item;
@@ -21,12 +19,15 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.stat.Stats;
+import net.minecraft.tag.ItemTags;
+import net.minecraft.tag.Tag;
 import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.TypedActionResult;
 import net.minecraft.util.math.Quaternion;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.Vec3f;
+import net.minecraft.util.registry.Registry;
 import net.minecraft.world.World;
 
 import java.util.*;
@@ -40,16 +41,24 @@ public class WizardStaffItem extends CrossbowItem implements ServerOnlyItem {
     private final Identifier id;
     private final int modelId;
 
+    private final Set<Identifier> spells;
+
     public static final Serializer<WizardStaffItem> SERIALIZER = new Serializer<WizardStaffItem>() {
         @Override
         public WizardStaffItem fromJson(Identifier id, JsonObject json, ItemData data) {
-            return new WizardStaffItem(id, data.settings);
+            Set<Identifier> spells = new HashSet<>();
+            JsonArray array = json.getAsJsonArray("spells");
+            for (int i = 0; i < array.size(); ++i) {
+                spells.add(new Identifier(array.get(i).getAsString()));
+            }
+            return new WizardStaffItem(id, data.settings, spells);
         }
     };
 
-    public WizardStaffItem(Identifier id, Settings settings) {
+    public WizardStaffItem(Identifier id, Settings settings, Set<Identifier> spells) {
         super(settings);
         this.id = id;
+        this.spells = spells;
         this.modelId = ServerOnlyItem.registerModelId(this);
         ServerOnlyItem.registerServerOnlyItem(id, this);
     }
@@ -58,7 +67,13 @@ public class WizardStaffItem extends CrossbowItem implements ServerOnlyItem {
         return new Predicate<ItemStack>() {
             @Override
             public boolean test(ItemStack stack) {
-                return stack.isOf(Items.FIRE_CHARGE);
+
+                if (stack.getItem() instanceof ServerOnlyItem) {
+                    return spells.contains(((ServerOnlyItem) stack.getItem()).getId());
+                } else {
+                    return spells.contains(Registry.ITEM.getKey(stack.getItem()));
+                }
+
             }
         };
     }

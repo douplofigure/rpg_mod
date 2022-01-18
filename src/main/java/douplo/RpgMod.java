@@ -28,6 +28,7 @@ import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.cauldron.CauldronBehavior;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.*;
 import net.minecraft.resource.ResourceManager;
@@ -45,10 +46,15 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.Rarity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.registry.Registry;
+import net.minecraft.village.TradeOffer;
+import net.minecraft.village.TradeOffers;
 import net.minecraft.world.World;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jetbrains.annotations.Nullable;
+
 import java.io.InputStream;
+import java.util.Random;
 
 
 public class RpgMod implements ModInitializer {
@@ -223,5 +229,20 @@ public class RpgMod implements ModInitializer {
 
         LOGGER.info(SkillTypes.CRAFTING);
 
+        replaceWanderingTraderTrades();
+
     }
+
+    private static void replaceWanderingTraderTrades() {
+        TradeOffers.Factory[] factories = TradeOffers.WANDERING_TRADER_TRADES.get(1);
+        factories[0] = new TradeOffers.Factory() {
+            @Nullable
+            @Override
+            public TradeOffer create(Entity entity, Random random) {
+                return new TradeOffer(new ItemStack(Items.STICK), new ItemStack(Items.FLINT_AND_STEEL), 12, 15, 0.76f);
+            }
+        };
+        TradeOffers.WANDERING_TRADER_TRADES.put(1, factories);
+    }
+
 }

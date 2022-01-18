@@ -73,7 +73,7 @@ public interface BonusRecipe<T extends Inventory> {
         }
     }
 
-    public static FutureItemStack readResultStack(JsonObject json) {
+    public static ItemStack readResultStack(JsonObject json) {
         Identifier itemId = new Identifier(json.get("item").getAsString());
 
         int count = 1;
@@ -96,7 +96,7 @@ public interface BonusRecipe<T extends Inventory> {
             name = Optional.of(n);
         }
 
-        return new FutureItemStack(itemId, count, tag, name);
+        return new FutureItemStack(itemId, count, tag, name).getStack();
     }
 
 }

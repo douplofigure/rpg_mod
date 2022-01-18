@@ -9,6 +9,7 @@ import net.minecraft.util.Identifier;
 public class ReloadManager implements SimpleSynchronousResourceReloadListener {
 
     private static final ServerOnlyItemLoader itemLoader = new ServerOnlyItemLoader();
+    private static final TradeReloader tradeLoader = new TradeReloader();
     public static boolean itemsLoaded = false;
 
     public static void reloadItems(ResourceManager manager) {
@@ -26,6 +27,7 @@ public class ReloadManager implements SimpleSynchronousResourceReloadListener {
     @Override
     public void reload(ResourceManager manager) {
 
+        tradeLoader.reload(manager);
         ResourcePackServer.createResourcePack(manager);
 
     }

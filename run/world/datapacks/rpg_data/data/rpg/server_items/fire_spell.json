@@ -4,6 +4,6 @@
   "settings": {
     "max_count": 64
   },
-  "texture": "rpg:item/coin",
-  "display_name": "Coin"
+  "texture": "minecraft:item/fire_charge",
+  "display_name": "Fire Spell"
 }

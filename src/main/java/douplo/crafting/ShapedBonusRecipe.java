@@ -45,7 +45,7 @@ public class ShapedBonusRecipe extends ShapedRecipe implements BonusRecipe<Craft
             int i = strings[0].length();
             int j = strings.length;
             DefaultedList<Ingredient> defaultedList = createPatternMatrix(strings, map, i, j);
-            ItemStack itemStack = ShapedRecipe.outputFromJson(JsonHelper.getObject(json,"result"));
+            ItemStack itemStack = BonusRecipe.readResultStack(JsonHelper.getObject(json,"result"));
             ShapedRecipe recipe = new ShapedRecipe(id, string, i, j, defaultedList, itemStack);
             List<CraftingBonus> bonuses = BonusRecipe.readBonuses(json);
             ShapedBonusRecipe bonusRecipe = new ShapedBonusRecipe(id, bonuses, recipe);
