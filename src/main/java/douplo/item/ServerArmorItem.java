@@ -68,6 +68,11 @@ public class ServerArmorItem extends ArmorItem implements ServerOnlyItem {
     }
 
     @Override
+    public int getMaxDamageForClient() {
+        return getMaxDamage();
+    }
+
+    @Override
     public Optional<Identifier> getCustomModelId() {
         return itemData.modelId;
     }

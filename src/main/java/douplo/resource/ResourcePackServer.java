@@ -30,6 +30,7 @@ public class ResourcePackServer {
     public static final Logger LOGGER = LogManager.getLogger("ResourcePackServer");
 
     public static void initializeResourcePackServer(String address, int port) {
+        LOGGER.info("Starting resource-pack server on " + address + ":" + port);
         try {
             HttpServer server = HttpServer.create(new InetSocketAddress(address, port), 0);
             server.createContext("/test", new MyHttpHandler());
@@ -146,8 +147,11 @@ public class ResourcePackServer {
         return new String(cachedPackHash);
     }
 
-    public static String getPackAddress() {
-        return "http://localhost:8000/resourcepack/" + getPackHash() + ".zip";
+    public static String getPackAddress(String serverIp) {
+        if (serverIp == null || serverIp.length() == 0) {
+            serverIp = "localhost";
+        }
+        return "http://"+serverIp+":8000/resourcepack/" + getPackHash() + ".zip";
     }
 
     public static void createResourcePack(ResourceManager manager) {

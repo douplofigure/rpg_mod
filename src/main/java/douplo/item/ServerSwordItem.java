@@ -18,7 +18,7 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
-public class ServerSwordItem  extends ServerToolItem implements Vanishable {
+public class ServerSwordItem extends ServerToolItem implements Vanishable {
 
     private final float attackDamage;
     private final Multimap<EntityAttribute, EntityAttributeModifier> attributeModifiers;
@@ -99,4 +99,5 @@ public class ServerSwordItem  extends ServerToolItem implements Vanishable {
         }
         return super.getAttributeModifiers(slot);
     }
+
 }

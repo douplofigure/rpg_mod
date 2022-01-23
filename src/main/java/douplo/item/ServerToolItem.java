@@ -75,6 +75,11 @@ public class ServerToolItem extends ToolItem implements ServerOnlyItem {
     }
 
     @Override
+    public int getMaxDamageForClient() {
+        return getMaxDamage();
+    }
+
+    @Override
     public Optional<Identifier> getCustomModelId() {
         return itemData.modelId;
     }

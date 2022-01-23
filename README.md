@@ -1,0 +1,1 @@
+A server-side only fabric mod to create custom items, skills and player classes in minecraft. All items, skills and classes are created in a datapack on the server. The server will then convert these items to vanilla items with custom textures for the clients when they log in.

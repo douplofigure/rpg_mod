@@ -114,6 +114,11 @@ public class WizardStaffItem extends CrossbowItem implements ServerOnlyItem {
     }
 
     @Override
+    public int getMaxDamageForClient() {
+        return getMaxDamage();
+    }
+
+    @Override
     public Optional<Identifier> getCustomModelId() {
         return Optional.of(new Identifier("rpg", "item/wizard_staff"));
     }

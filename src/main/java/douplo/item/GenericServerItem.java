@@ -39,6 +39,11 @@ public class GenericServerItem extends Item implements ServerOnlyItem {
     }
 
     @Override
+    public int getMaxDamageForClient() {
+        return getMaxDamage();
+    }
+
+    @Override
     public Optional<Identifier> getCustomModelId() {
         return itemData.modelId;
     }

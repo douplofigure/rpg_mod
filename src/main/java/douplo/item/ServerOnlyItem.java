@@ -213,7 +213,7 @@ public interface ServerOnlyItem extends ItemConvertible {
 
     public Item getClientItem();
     public int getModelId();
-    public int getMaxDamage();
+    public int getMaxDamageForClient();
     public default String getTranslationKey() {
         return "item."+getId().getNamespace() +"."+ getId().getNamespace();
     }
@@ -239,8 +239,8 @@ public interface ServerOnlyItem extends ItemConvertible {
 
         tag.putInt("CustomModelData", getModelId());
 
-        if (this.getMaxDamage() > 0) {
-            int clientDamage = stack.getDamage() * getClientItem().getMaxDamage() / this.getMaxDamage();
+        if (this.getMaxDamageForClient() > 0) {
+            int clientDamage = stack.getDamage() * getClientItem().getMaxDamage() / this.getMaxDamageForClient();
             tag.putInt("Damage", clientDamage);
         }
 

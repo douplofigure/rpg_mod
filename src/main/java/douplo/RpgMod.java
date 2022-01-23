@@ -5,9 +5,6 @@ import douplo.command.Commands;
 import douplo.crafting.*;
 import douplo.event.PlayerRespawnCallback;
 import douplo.item.ServerItemTypes;
-import douplo.item.GenericServerItem;
-import douplo.item.ServerToolItem;
-import douplo.item.WizardStaffItem;
 import douplo.loot.condition.LootConditions;
 import douplo.loot.number.NumberProviderTypes;
 import douplo.playerclass.PlayerClass;
@@ -15,7 +12,6 @@ import douplo.playerclass.PlayerClassLoader;
 import douplo.playerclass.PlayerClassMap;
 import douplo.resource.ReloadManager;
 import douplo.resource.ResourcePackServer;
-import douplo.resource.ServerOnlyItemLoader;
 import douplo.skill.Skill;
 import douplo.skill.SkillLoader;
 import douplo.skill.SkillTypes;
@@ -43,9 +39,7 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.Rarity;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.registry.Registry;
 import net.minecraft.village.TradeOffer;
 import net.minecraft.village.TradeOffers;
 import net.minecraft.world.World;
@@ -84,7 +78,7 @@ public class RpgMod implements ModInitializer {
     @Override
     public void onInitialize() {
 
-        ResourcePackServer.initializeResourcePackServer("localhost", 8000);
+        ResourcePackServer.initializeResourcePackServer("109.238.14.32", 8000);
 
         ServerItemTypes.registerTypes();
 
@@ -164,7 +158,8 @@ public class RpgMod implements ModInitializer {
             public void onWorldLoad(MinecraftServer server, ServerWorld world) {
                 LOGGER.info("WORLD LOAD!");
 
-                server.setResourcePack(ResourcePackServer.getPackAddress(), ResourcePackServer.getPackHash());
+                LOGGER.info("Starting server on: " + server.getServerIp());
+                server.setResourcePack(ResourcePackServer.getPackAddress(server.getServerIp()), ResourcePackServer.getPackHash());
 
                 PLAYER_CLASSES = PlayerClassMap.load(server);
 
@@ -182,7 +177,7 @@ public class RpgMod implements ModInitializer {
 
                 if (reloadOccured) {
                     reloadOccured = false;
-                    server.setResourcePack(ResourcePackServer.getPackAddress(), ResourcePackServer.getPackHash());
+                    server.setResourcePack(ResourcePackServer.getPackAddress(server.getServerIp()), ResourcePackServer.getPackHash());
                     LOGGER.info(server.getResourcePackHash());
                     LOGGER.info(server.getResourcePackUrl());
                 }
