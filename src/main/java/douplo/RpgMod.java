@@ -47,7 +47,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.InputStream;
+import java.io.*;
+import java.util.Properties;
 import java.util.Random;
 
 
@@ -78,7 +79,15 @@ public class RpgMod implements ModInitializer {
     @Override
     public void onInitialize() {
 
-        ResourcePackServer.initializeResourcePackServer("109.238.14.32", 8000);
+        Properties properties = new Properties();
+        try {
+            properties.load(new FileInputStream(new File("./rpg_mod.properties")));
+        } catch (IOException e) {
+            e.printStackTrace();
+            properties.put("resource-ip", "localhost");
+        }
+
+        ResourcePackServer.initializeResourcePackServer(properties.getProperty("resource-ip"), 8000);
 
         ServerItemTypes.registerTypes();
 
@@ -225,6 +234,20 @@ public class RpgMod implements ModInitializer {
         LOGGER.info(SkillTypes.CRAFTING);
 
         replaceWanderingTraderTrades();
+        writeProperties(properties);
+
+    }
+
+    private void writeProperties(Properties properties) {
+
+        try {
+            FileOutputStream out = new FileOutputStream(new File("./rpg_mod.properties"));
+            properties.store(out, "Settings for rpg-mod.");
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
     }
 
