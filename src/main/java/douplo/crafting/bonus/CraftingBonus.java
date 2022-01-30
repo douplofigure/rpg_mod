@@ -2,20 +2,17 @@ package douplo.crafting.bonus;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonObject;
 import douplo.RpgMod;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.loot.LootGsons;
 import net.minecraft.loot.condition.LootCondition;
-import net.minecraft.loot.condition.LootConditionTypes;
 import net.minecraft.loot.context.LootContext;
 import net.minecraft.loot.context.LootContextParameters;
 import net.minecraft.loot.context.LootContextType;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.JsonHelper;
 import net.minecraft.util.registry.Registry;
 
 import java.util.ArrayList;
@@ -40,6 +37,16 @@ public abstract class CraftingBonus {
         public CraftingBonus fromJSON(JsonObject object) {
             String modifierName = object.get("modifier").getAsString();
             return new ItemModifierBonus(new Identifier(modifierName));
+        }
+    });
+
+    public static final Type EXPLOSION = new Type(new Identifier(RpgMod.MODID, "explosion"), new Loader() {
+        @Override
+        public CraftingBonus fromJSON(JsonObject object) {
+            Identifier predicateId = new Identifier(object.get("predicate").getAsString());
+            float power = object.get("power").getAsFloat();
+            boolean fire = object.get("fire").getAsBoolean();
+            return new ExplosionCraftBonus(predicateId, power, fire);
         }
     });
 

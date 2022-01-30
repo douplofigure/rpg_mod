@@ -23,5 +23,11 @@
     "item": "rpg:enchanted_gem"
   },
   "bonuses": [
+    {
+      "type": "rpg_mod:explosion",
+      "fire": true,
+      "power": 5,
+      "predicate": "rpg:crafting/enchanted_gem_explosion"
+    }
   ]
 }

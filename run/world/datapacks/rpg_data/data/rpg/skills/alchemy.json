@@ -1,0 +1,21 @@
+{
+  "display": {
+    "text": "Alchemy"
+  },
+  "type": "rpg_mod:combined",
+  "factors" : [1e-3, 0.01, 0.01],
+  "children" : [
+    {
+      "type": "rpg_mod:mining",
+      "tag": "minecraft:mineable/hoe"
+    },
+    {
+      "type": "rpg_mod:using",
+      "tag": "rpg:seeds"
+    },
+    {
+      "type": "rpg_mod:using",
+      "tag": "rpg:hoes"
+    }
+  ]
+}

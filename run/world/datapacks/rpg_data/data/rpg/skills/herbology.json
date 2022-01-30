@@ -3,7 +3,7 @@
 	"text": "Herbology"
     },
     "type": "rpg_mod:combined",
-    "factors" : [1e-4, 0.01, 0.01],
+    "factors" : [1e-3, 0.01, 0.01],
     "children" : [
 	{
 	    "type": "rpg_mod:mining",

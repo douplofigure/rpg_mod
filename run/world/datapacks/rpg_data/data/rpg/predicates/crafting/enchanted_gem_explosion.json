@@ -1,0 +1,10 @@
+[
+  {
+    "condition": "minecraft:inverted",
+    "term": {
+      "condition": "rpg_mod:skill_level",
+      "min_value": 4.0,
+      "skill": "rpg:alchemy"
+    }
+  }
+]
